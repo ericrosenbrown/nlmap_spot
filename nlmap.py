@@ -9,11 +9,11 @@ cache_text = True#same but for text
 vis_boxes = False #show image with detected bounding boxes
 vis_details = False #show details for each bounding box
 headless = True
-img_dir_root_path = "/home/eric/Github/robot-vision/"
+img_dir_root_path = "./"
 img_dir_name = "spot-images"
 img_dir_path = img_dir_root_path + img_dir_name
-cache_path = "/home/eric/Github/robot-vision/cache/"
-saved_model_dir = "/home/eric/Github/robot-vision/vild/image_path_v2"
+cache_path = "./cache/"
+saved_model_dir = "./vild/image_path_v2"
 
 overall_fig_size = (18, 24)
 
@@ -150,7 +150,7 @@ for img_name in img_names:
 
 	n_boxes = rescaled_detection_boxes.shape[0]
 
-	if cache_images: #and not cache_img_exists:
+	if cache_images and not cache_img_exists:
 		img2vectorclip_dir[img_name] = {}
 
 	for anno_idx in indices[0:int(n_boxes)]:

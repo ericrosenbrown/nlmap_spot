@@ -843,7 +843,7 @@ def main(image_path, category_name_string, params):
 
 if __name__ == "__main__":
   #image_path = './examples/five_women_and_umbrellas.jpg'  #@param {type:"string"}
-  image_path= "/home/eric/Github/robot-vision/spot-images/hand_color_image18.jpg"
+  image_path= "../spot-images/hand_color_image18.jpg"
   display_image(image_path, size=display_input_size)
 
   

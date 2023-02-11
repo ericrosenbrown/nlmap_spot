@@ -5,6 +5,9 @@ CLIP: https://github.com/openai/CLIP
 
 ViLD: https://github.com/tensorflow/tpu/blob/master/models/official/detection/projects/vild/ViLD_demo.ipynb
 
+## Usage
+TODO: explain flags (caching)
+
 
 ## Examples
 Go to this google link drive and download some example images from a Spot walking around a room

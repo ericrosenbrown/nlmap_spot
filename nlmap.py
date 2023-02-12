@@ -178,14 +178,16 @@ for img_name in img_names:
 		if np.argmax(scores) == 0:
 		  continue
 
+
+		y1, x1, y2, x2 = int(np.floor(bbox[0])), int(np.floor(bbox[1])), int(np.ceil(bbox[2])), int(np.ceil(bbox[3]))
+		crop = np.copy(raw_image[y1:y2, x1:x2, :])
+
 		for idx, category_name in enumerate(category_names):
 			if scores[idx] > category_names_vildclip_dir[category_name]["best_vild_score"]:
 				category_names_vildclip_dir[category_name]["best_vild_score"] = scores[idx]
 				category_names_vildclip_dir[category_name]["best_vild_image"] = img_name
 				category_names_vildclip_dir[category_name]["best_vild_anno_idx"] = anno_idx
-
-		y1, x1, y2, x2 = int(np.floor(bbox[0])), int(np.floor(bbox[1])), int(np.ceil(bbox[2])), int(np.ceil(bbox[3]))
-		crop = np.copy(raw_image[y1:y2, x1:x2, :])
+				category_names_vildclip_dir[category_name]["best_vild_crop"] = crop
 
 		#crop_processed = np.moveaxis(crop, -1, 0)
 		crop_pil = Image.fromarray(crop)
@@ -274,10 +276,13 @@ for img_name in img_names:
 if cache_images and not cache_img_exists:
 	pickle.dump(img2vectorvild_dir,open(cache_path+img_dir_name+"_images_vild","wb"))
 	pickle.dump(img2vectorclip_dir,open(cache_path+img_dir_name+"_images_clip","wb"))
-print(category_names_vildclip_dir)
+#print(category_names_vildclip_dir)
 for category_name in category_names:
-	plt.title(category_name)
+	plt.title("CLIP:" + category_name + str(category_names_vildclip_dir[category_name]["best_clip_score"]))
 	plt.imshow(category_names_vildclip_dir[category_name]["best_clip_crop"])
+	plt.show()
+	plt.title("VILD:" + category_name + str(category_names_vildclip_dir[category_name]["best_vild_score"]))
+	plt.imshow(category_names_vildclip_dir[category_name]["best_vild_crop"])
 	plt.show()
 
 

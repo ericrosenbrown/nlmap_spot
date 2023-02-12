@@ -6,9 +6,9 @@ import os
 # Hyperparameters and general initialization
 cache_images = True #load image cache if available, make image cache when needed
 cache_text = True#same but for text
-vis_boxes = False #show image with detected bounding boxes
-vis_details = False #show details for each bounding box
-headless = True
+vis_boxes = True #show image with detected bounding boxes
+vis_details = True #show details for each bounding box
+headless = False
 img_dir_root_path = "./"
 img_dir_name = "spot-images"
 img_dir_path = img_dir_root_path + img_dir_name
@@ -101,7 +101,10 @@ for img_name in img_names:
 
 	#################################################################
 	# Compute detection scores, and rank results
+	print(f"Detection visual feat {detection_visual_feat.shape}")
+	print(f"text feat {text_features.shape}")
 	raw_scores = detection_visual_feat.dot(text_features.T)
+	print(raw_scores)
 	if use_softmax:
 		scores_all = softmax(temperature * raw_scores, axis=-1)
 	else:
@@ -181,6 +184,13 @@ for img_name in img_names:
 			crop_back = Image.open("./cache/"+img_dir_name+"_crop.jpeg")
 			crop_processed = preprocess(crop_back).unsqueeze(0).to(device)
 			clip_image_features = model.encode_image(crop_processed)
+
+		#Normalize clip_image_features before taking dot product with normalized text features
+		clip_image_features = clip_image_features / clip_image_features.norm(dim=1, keepdim=True)
+		clip_image_features = clip_image_features.cpu().detach().numpy()
+		clip_scores = clip_image_features.dot(text_features.T)
+		print(f"clip scores {clip_scores}")
+
 
 
 		img_w_mask = plot_mask(mask_color, alpha, raw_image, segmentations[anno_idx])

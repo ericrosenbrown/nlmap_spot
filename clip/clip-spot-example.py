@@ -23,10 +23,8 @@ for img_name in img_names:
     img_path = img_dir_path + "/" + img_name
 
     raw_image = Image.open(img_path)
-    print(type(raw_image))
     #raw_image.show()
     image = preprocess(raw_image).unsqueeze(0).to(device)
-    print(image.shape)
 
     with torch.no_grad():
         image_features = model.encode_image(image)

@@ -20,8 +20,8 @@ overall_fig_size = (18, 24)
 max_boxes_to_draw = 25 #@param {type:"integer"}
 nms_threshold = 0.6 #@param {type:"slider", min:0, max:0.9, step:0.05}
 min_rpn_score_thresh = 0.9  #@param {type:"slider", min:0, max:1, step:0.01}
-#min_box_area = 220 #@param {type:"slider", min:0, max:10000, step:1.0}
-min_box_area = 1000
+min_box_area = 220 #@param {type:"slider", min:0, max:10000, step:1.0}
+#min_box_area = 1000
 params = max_boxes_to_draw, nms_threshold, min_rpn_score_thresh, min_box_area
 
 use_softmax = False
@@ -47,7 +47,7 @@ category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pi
 #category_name_string = "Table; Chair"
 
 category_names = [x.strip() for x in category_name_string.split(';')]
-category_names = ['background'] + category_names
+#category_names = ['background'] + category_names
 categories = [{'name': item, 'id': idx+1,} for idx, item in enumerate(category_names)]
 category_indices = {cat['id']: cat for cat in categories}
 

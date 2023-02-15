@@ -10,7 +10,7 @@ cache_images = True #load image cache if available, make image cache when needed
 cache_text = True#same but for text
 vis_boxes = False #show image with detected bounding boxes
 vis_details = False #show details for each bounding box
-headless = True
+headless = False
 img_dir_root_path = "./"
 img_dir_name = "spot-images"
 img_dir_path = img_dir_root_path + img_dir_name
@@ -22,8 +22,8 @@ overall_fig_size = (18, 24)
 max_boxes_to_draw = 25 #@param {type:"integer"}
 nms_threshold = 0.6 #@param {type:"slider", min:0, max:0.9, step:0.05}
 min_rpn_score_thresh = 0.9  #@param {type:"slider", min:0, max:1, step:0.01}
-#min_box_area = 220 #@param {type:"slider", min:0, max:10000, step:1.0}
-min_box_area = 1000
+min_box_area = 220 #@param {type:"slider", min:0, max:10000, step:1.0}
+#min_box_area = 1000
 params = max_boxes_to_draw, nms_threshold, min_rpn_score_thresh, min_box_area
 
 use_softmax = False
@@ -45,12 +45,12 @@ category_name_string = ';'.join(['flipflop', 'street sign', 'bracelet',
     'transparent umbrella', 'plain pink umbrella', 'blue patterned umbrella',
     'koala', 'electric box','car', 'pole'])
 '''
-#category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pillow; Blanket; Clock; Picture frame; Vase; Lampshade; Candlestick; Books; Magazines; DVD player; CD player; Record player; Video game console; Board game; Card game; Chess set; Backgammon set; Carpet; Drapes; Blinds; Shelving unit; Side table; Coffee table; Footstool; Armchair; Bean bag; Desk; Office chair; Computer; Printer; Scanner; Fax machine; Telephone; Cell phone; Lamp; Lamp; Rug; Trash can; Wastebasket; Vacuum cleaner; Broom; Dustpan; Mop; Bucket; Dust cloth; Cleaning supplies; Iron; Ironing board; Hair dryer; Curling iron; Toilet brush; Towels; Soap; Shampoo; Toothbrush; Toothpaste; Razor; Shaving cream; Deodorant; Hairbrush; Hair ties; Makeup; Nail polish; Perfume; Cologne; Laundry basket; Clothes hanger; Closet; Dresser; Bed; Mattress; Pillows; Sheets; Blanket; Comforter; Quilt; Bedspread; Nightstand; Alarm clock; Lamp; Lamp; Rug"
+category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pillow; Blanket; Clock; Picture frame; Vase; Lampshade; Candlestick; Books; Magazines; DVD player; CD player; Record player; Video game console; Board game; Card game; Chess set; Backgammon set; Carpet; Drapes; Blinds; Shelving unit; Side table; Coffee table; Footstool; Armchair; Bean bag; Desk; Office chair; Computer; Printer; Scanner; Fax machine; Telephone; Cell phone; Lamp; Lamp; Rug; Trash can; Wastebasket; Vacuum cleaner; Broom; Dustpan; Mop; Bucket; Dust cloth; Cleaning supplies; Iron; Ironing board; Hair dryer; Curling iron; Toilet brush; Towels; Soap; Shampoo; Toothbrush; Toothpaste; Razor; Shaving cream; Deodorant; Hairbrush; Hair ties; Makeup; Nail polish; Perfume; Cologne; Laundry basket; Clothes hanger; Closet; Dresser; Bed; Mattress; Pillows; Sheets; Blanket; Comforter; Quilt; Bedspread; Nightstand; Alarm clock; Lamp; Lamp; Rug"
 #category_name_string = "Table; Chair"
-category_name_string = "food; chair; person; sofa; pillow; table; book"
+#category_name_string = "food; chair; person; sofa; pillow; table; book"
 
 category_names = [x.strip() for x in category_name_string.split(';')]
-category_names = ['background'] + category_names
+#category_names = ['background'] + category_names
 categories = [{'name': item, 'id': idx+1,} for idx, item in enumerate(category_names)]
 category_indices = {cat['id']: cat for cat in categories}
 
@@ -92,7 +92,7 @@ if not cache_img_exists:
 category_names_vildclip_dir = defaultdict(lambda: {"best_clip_score": -math.inf, "best_vild_score": -math.inf}) #this will take in a category name, and return {"best_clip_score": X, "best_vild_score": X, "best_clip_image": X, "best_clip_anno_idx": X, "best_vild_image": X, "best_vild_anno_idx": X}
 for img_name in img_names:
 	image_path = img_dir_path + "/" + img_name
-	print(image_path)
+	#print(image_path)
 
 	###################################################
 	#Load all of the images, and use ViLD to extract RoI bounding boxes (+rescaled), masks, scores, and feature vectors.
@@ -106,10 +106,10 @@ for img_name in img_names:
 
 	#################################################################
 	# Compute detection scores, and rank results
-	print(f"Detection visual feat {detection_visual_feat.shape}")
-	print(f"text feat {text_features.shape}")
+	#print(f"Detection visual feat {detection_visual_feat.shape}")
+	#print(f"text feat {text_features.shape}")
 	raw_scores = detection_visual_feat.dot(text_features.T)
-	print(raw_scores)
+	#print(raw_scores)
 	if use_softmax:
 		scores_all = softmax(temperature * raw_scores, axis=-1)
 	else:
@@ -171,7 +171,7 @@ for img_name in img_names:
 		img2vectorclip_dir[img_name] = {}
 
 	for anno_idx in indices[0:int(n_boxes)]:
-		print(img_name, anno_idx)
+		#print(img_name, anno_idx)
 		rpn_score = detection_roi_scores[anno_idx]
 		bbox = rescaled_detection_boxes[anno_idx]
 		scores = scores_all[anno_idx]
@@ -277,12 +277,13 @@ if cache_images and not cache_img_exists:
 	pickle.dump(img2vectorvild_dir,open(cache_path+img_dir_name+"_images_vild","wb"))
 	pickle.dump(img2vectorclip_dir,open(cache_path+img_dir_name+"_images_clip","wb"))
 #print(category_names_vildclip_dir)
-for category_name in category_names:
-	plt.title("CLIP:" + category_name + str(category_names_vildclip_dir[category_name]["best_clip_score"]))
-	plt.imshow(category_names_vildclip_dir[category_name]["best_clip_crop"])
-	plt.show()
-	plt.title("VILD:" + category_name + str(category_names_vildclip_dir[category_name]["best_vild_score"]))
-	plt.imshow(category_names_vildclip_dir[category_name]["best_vild_crop"])
-	plt.show()
+if not headless:
+	for category_name in category_names:
+		plt.title("CLIP:" + category_name + str(category_names_vildclip_dir[category_name]["best_clip_score"]))
+		plt.imshow(category_names_vildclip_dir[category_name]["best_clip_crop"])
+		plt.show()
+		plt.title("VILD:" + category_name + str(category_names_vildclip_dir[category_name]["best_vild_score"]))
+		plt.imshow(category_names_vildclip_dir[category_name]["best_vild_crop"])
+		plt.show()
 
 

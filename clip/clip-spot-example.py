@@ -8,7 +8,7 @@ print(f"Models: {clip.available_models()}")
 model, preprocess = clip.load("ViT-B/32", device=device)
 
 img_dir_path = "../spot-images"
-categories = ["robotics lab", "yummy snack", "something to keep myself warm","happy cloud","place to draw","coffee grounds"]
+categories = ["trash can", "robotics lab", "yummy snack", "something to keep myself warm","happy cloud","place to draw","coffee grounds"]
 #categories = ["ukulele"]
 category_idx = 0
 

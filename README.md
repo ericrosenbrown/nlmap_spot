@@ -27,6 +27,10 @@ This will take all the images from spot-images, run ViLD on each to extract boun
 
 There are cache options to save CLIP image features and textures + ViLD image features. This way, it is faster to run next time. You can just delete the cache if you make any changes.
 
+'python classify_top_k.py'
+
+This will find the top k crops across all images for both ViLD and CLIP and visualize them.
+
 ## TODO:
 - Make configuration file for language and other hyperparameters and load them in
 - Make semantic map as in NL-Map

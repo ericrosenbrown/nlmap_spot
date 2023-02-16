@@ -47,7 +47,8 @@ category_name_string = ';'.join(['flipflop', 'street sign', 'bracelet',
     'transparent umbrella', 'plain pink umbrella', 'blue patterned umbrella',
     'koala', 'electric box','car', 'pole'])
 '''
-category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pillow; Blanket; Clock; Picture frame; Vase; Lampshade; Candlestick; Books; Magazines; DVD player; CD player; Record player; Video game console; Board game; Card game; Chess set; Backgammon set; Carpet; Drapes; Blinds; Shelving unit; Side table; Coffee table; Footstool; Armchair; Bean bag; Desk; Office chair; Computer; Printer; Scanner; Fax machine; Telephone; Cell phone; Lamp; Lamp; Rug; Trash can; Wastebasket; Vacuum cleaner; Broom; Dustpan; Mop; Bucket; Dust cloth; Cleaning supplies; Iron; Ironing board; Hair dryer; Curling iron; Toilet brush; Towels; Soap; Shampoo; Toothbrush; Toothpaste; Razor; Shaving cream; Deodorant; Hairbrush; Hair ties; Makeup; Nail polish; Perfume; Cologne; Laundry basket; Clothes hanger; Closet; Dresser; Bed; Mattress; Pillows; Sheets; Blanket; Comforter; Quilt; Bedspread; Nightstand; Alarm clock; Lamp; Lamp; Rug"
+#category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pillow; Blanket; Clock; Picture frame; Vase; Lampshade; Candlestick; Books; Magazines; DVD player; CD player; Record player; Video game console; Board game; Card game; Chess set; Backgammon set; Carpet; Drapes; Blinds; Shelving unit; Side table; Coffee table; Footstool; Armchair; Bean bag; Desk; Office chair; Computer; Printer; Scanner; Fax machine; Telephone; Cell phone; Rug; Trash can; Wastebasket; Vacuum cleaner; Broom; Dustpan; Mop; Bucket; Dust cloth; Cleaning supplies; Iron; Ironing board; Hair dryer; Curling iron; Toilet brush; Towels; Soap; Shampoo; Toothbrush; Toothpaste; Razor; Shaving cream; Deodorant; Hairbrush; Hair ties; Makeup; Nail polish; Perfume; Cologne; Laundry basket; Clothes hanger; Closet; Dresser; Bed; Mattress; Pillows; Sheets; Blanket; Comforter; Quilt; Bedspread; Nightstand; Alarm clock; Lamp; Lamp; Rug"
+category_name_string = "Hairbrush; Lamp; Chair; Sofa; Books; Television" 
 #category_name_string = "Table; Chair"
 #category_name_string = "food; chair; person; sofa; pillow; table; book"
 
@@ -177,7 +178,12 @@ for img_name in img_names:
 		crop = np.copy(raw_image[y1:y2, x1:x2, :])
 
 		for idx, category_name in enumerate(category_names):
-			priority_queue_vild_dir[category_name].put((-scores[idx], (img_name,anno_idx,crop))) #TODO: make this an object to more interpretable
+			new_item = (-scores[idx], (img_name,anno_idx,crop))
+			#print(category_name, img_name, anno_idx)
+			if new_item in priority_queue_vild_dir[category_name].queue:
+				raise Exception(f"{img_name} {anno_idx} already in queue for {category_name}")
+			priority_queue_vild_dir[category_name].put(new_item) #TODO: make this an object to more interpretable
+
 
 		#crop_processed = np.moveaxis(crop, -1, 0)
 		crop_pil = Image.fromarray(crop)
@@ -268,10 +274,8 @@ if not headless:
 		fig, axs = plt.subplots(2, top_k)
 		plt.suptitle(f"Query: {category_name}")
 		for k in range(top_k):
-			print(category_name, k)
 			top_k_item_vild = priority_queue_vild_dir[category_name].get()
 			top_k_item_clip = priority_queue_clip_dir[category_name].get()
-			#plt.subplot(1,top_k+k,1+k)
 			axs[0, k].set_title(f"ViLD score {top_k_item_vild[0]*-1:.3f}")
 			axs[0, k].imshow(top_k_item_vild[1][-1])
 

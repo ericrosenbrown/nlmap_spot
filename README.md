@@ -34,4 +34,3 @@ There are cache options to save CLIP image features and textures + ViLD image fe
 - Write utilies to collect data on Spot + execute navigation and manipulation actions with nlmap
 
 ## BUGS:
-- Why does CLIP and VILD sometimes return same crop as different top results?

@@ -3,6 +3,7 @@ import pickle
 import os
 from collections import defaultdict
 import math
+from queue import PriorityQueue
 
 #################################################################
 # Hyperparameters and general initialization
@@ -10,7 +11,8 @@ cache_images = True #load image cache if available, make image cache when needed
 cache_text = True#same but for text
 vis_boxes = False #show image with detected bounding boxes
 vis_details = False #show details for each bounding box
-headless = False
+headless = False #no visualization at all
+top_k = 5 #top k scores for models get stored
 img_dir_root_path = "./"
 img_dir_name = "spot-images"
 img_dir_path = img_dir_root_path + img_dir_name
@@ -89,7 +91,8 @@ if not cache_img_exists:
 	session = tf.Session(graph=tf.Graph())
 	_ = tf.saved_model.loader.load(session, ['serve'], saved_model_dir)
 
-category_names_vildclip_dir = defaultdict(lambda: {"best_clip_score": -math.inf, "best_vild_score": -math.inf}) #this will take in a category name, and return {"best_clip_score": X, "best_vild_score": X, "best_clip_image": X, "best_clip_anno_idx": X, "best_vild_image": X, "best_vild_anno_idx": X}
+priority_queue_clip_dir = defaultdict(lambda: PriorityQueue()) #keys will be category names. The priority will be negative score (since lowest gets dequeue) and items be image, anno_idx, and crop
+priority_queue_vild_dir = defaultdict(lambda: PriorityQueue()) #keys will be category names. The priority will be negative score (since lowest gets dequeue) and items be image, anno_idx, and crop
 for img_name in img_names:
 	image_path = img_dir_path + "/" + img_name
 	#print(image_path)
@@ -114,15 +117,6 @@ for img_name in img_names:
 		scores_all = softmax(temperature * raw_scores, axis=-1)
 	else:
 		scores_all = raw_scores
-
-	'''
-	#go through each word in the categories:
-	for idx, category_name in enumerate(category_names):
-		if scores_all[0][idx] > category_names_vildclip_dir["best_vild_score"]:
-			category_names_vildclip_dir[category_name]["best_vild_score"] = scores_all[0][idx]
-			category_names_vildclip_dir[category_name]["best_clip_image"] = img_name
-			category_names_vildclip_dir[category_name]["best_clip_anno_idx"] = anno_idx
-	'''
 
 	indices = np.argsort(-np.max(scores_all, axis=1))  # Results are ranked by scores
 	indices_fg = np.array([i for i in indices if np.argmax(scores_all[i]) != 0])
@@ -183,11 +177,7 @@ for img_name in img_names:
 		crop = np.copy(raw_image[y1:y2, x1:x2, :])
 
 		for idx, category_name in enumerate(category_names):
-			if scores[idx] > category_names_vildclip_dir[category_name]["best_vild_score"]:
-				category_names_vildclip_dir[category_name]["best_vild_score"] = scores[idx]
-				category_names_vildclip_dir[category_name]["best_vild_image"] = img_name
-				category_names_vildclip_dir[category_name]["best_vild_anno_idx"] = anno_idx
-				category_names_vildclip_dir[category_name]["best_vild_crop"] = crop
+			priority_queue_vild_dir[category_name].put((-scores[idx], (img_name,anno_idx,crop))) #TODO: make this an object to more interpretable
 
 		#crop_processed = np.moveaxis(crop, -1, 0)
 		crop_pil = Image.fromarray(crop)
@@ -214,11 +204,7 @@ for img_name in img_names:
 
 		#go through each word in the categories:
 		for idx, category_name in enumerate(category_names):
-			if clip_scores[0][idx] > category_names_vildclip_dir[category_name]["best_clip_score"]:
-				category_names_vildclip_dir[category_name]["best_clip_score"] = clip_scores[0][idx]
-				category_names_vildclip_dir[category_name]["best_clip_image"] = img_name
-				category_names_vildclip_dir[category_name]["best_clip_anno_idx"] = anno_idx
-				category_names_vildclip_dir[category_name]["best_clip_crop"] = crop
+			priority_queue_clip_dir[category_name].put((-clip_scores[0][idx], (img_name,anno_idx,crop))) #TODO: make this an object to more interpretable
 
 
 
@@ -279,7 +265,20 @@ if cache_images and not cache_img_exists:
 #print(category_names_vildclip_dir)
 if not headless:
 	for category_name in category_names:
+		fig, axs = plt.subplots(2, top_k)
 		plt.suptitle(f"Query: {category_name}")
+		for k in range(top_k):
+			print(category_name, k)
+			top_k_item_vild = priority_queue_vild_dir[category_name].get()
+			top_k_item_clip = priority_queue_clip_dir[category_name].get()
+			#plt.subplot(1,top_k+k,1+k)
+			axs[0, k].set_title(f"ViLD score {top_k_item_vild[0]*-1:.3f}")
+			axs[0, k].imshow(top_k_item_vild[1][-1])
+
+			axs[1, k].set_title(f"CLIP score {top_k_item_clip[0]*-1:.3f}")
+			axs[1, k].imshow(top_k_item_clip[1][-1])
+		plt.show()
+		'''
 		plt.subplot(1, 2, 1)
 		plt.title("CLIP score:" + str(category_names_vildclip_dir[category_name]["best_clip_score"]))
 		plt.imshow(category_names_vildclip_dir[category_name]["best_clip_crop"])
@@ -287,5 +286,6 @@ if not headless:
 		plt.title("ViLD score:" + str(category_names_vildclip_dir[category_name]["best_vild_score"]))
 		plt.imshow(category_names_vildclip_dir[category_name]["best_vild_crop"])
 		plt.show()
+		'''
 
 

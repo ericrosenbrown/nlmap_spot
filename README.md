@@ -28,8 +28,10 @@ This will take all the images from spot-images, run ViLD on each to extract boun
 There are cache options to save CLIP image features and textures + ViLD image features. This way, it is faster to run next time. You can just delete the cache if you make any changes.
 
 ## TODO:
-- Rank K top results from CLIP and ViLD
 - Make configuration file for language and other hyperparameters and load them in
 - Make semantic map as in NL-Map
 - Hook in LLM to reproduce nlmap-saycan
 - Write utilies to collect data on Spot + execute navigation and manipulation actions with nlmap
+
+## BUGS:
+- Why does CLIP and VILD sometimes return same crop as different top results?

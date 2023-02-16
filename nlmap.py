@@ -279,10 +279,12 @@ if cache_images and not cache_img_exists:
 #print(category_names_vildclip_dir)
 if not headless:
 	for category_name in category_names:
-		plt.title("CLIP:" + category_name + str(category_names_vildclip_dir[category_name]["best_clip_score"]))
+		plt.suptitle(f"Query: {category_name}")
+		plt.subplot(1, 2, 1)
+		plt.title("CLIP score:" + str(category_names_vildclip_dir[category_name]["best_clip_score"]))
 		plt.imshow(category_names_vildclip_dir[category_name]["best_clip_crop"])
-		plt.show()
-		plt.title("VILD:" + category_name + str(category_names_vildclip_dir[category_name]["best_vild_score"]))
+		plt.subplot(1, 2, 2)
+		plt.title("ViLD score:" + str(category_names_vildclip_dir[category_name]["best_vild_score"]))
 		plt.imshow(category_names_vildclip_dir[category_name]["best_vild_crop"])
 		plt.show()
 

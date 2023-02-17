@@ -29,7 +29,7 @@ There are cache options to save CLIP image features and textures + ViLD image fe
 
 `python classify_top_k.py`
 
-This will find the top k crops across all images for both ViLD and CLIP and visualize them.
+This will find the top k crops for a sequence of strings across all images for both ViLD and CLIP and visualize them.
 
 ## TODO:
 - Make configuration file for language and other hyperparameters and load them in

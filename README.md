@@ -1,3 +1,7 @@
+This is a repository for an implementation of nlmap-saycan, with additional utilities for the Spot.
+
+nlmap-saycan: https://nlmap-saycan.github.io/
+
 ## Setup
 If you haven't yet, make a virtual environment and activate it, for example with conda:
 `conda create -n nlmap_spot python=3.9`

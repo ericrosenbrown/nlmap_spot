@@ -36,9 +36,11 @@ There are cache options to save CLIP image features and textures + ViLD image fe
 This will find the top k crops for a sequence of strings across all images for both ViLD and CLIP and visualize them.
 
 ## TODO:
+- Filter out low-score candidates
 - Make configuration file for language and other hyperparameters and load them in
 - Make semantic map as in NL-Map
 - Hook in LLM to reproduce nlmap-saycan
 - Write utilies to collect data on Spot + execute navigation and manipulation actions with nlmap
 
 ## BUGS:
+- Why do CLIP scores seem to always be slightly lower than ViLD?

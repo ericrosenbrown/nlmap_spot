@@ -39,6 +39,15 @@ This will find the top k crops for a sequence of strings across all images for b
 - Filter out low-score candidates
 - Make configuration file for language and other hyperparameters and load them in
 - Make semantic map as in NL-Map
+	- get rgb images, depth images, robot positions, cameras intrinsics
+		- visualize robot positions
+		- visualize pointcloud in camera frame from depth + intrinsics
+		- visualize all point clouds in vision frame with robot positions
+	- run classify_top_k on rgb images
+	- use bounding boxes to get estimated size of objects
+	- get position of bounding boxes based on middle pixel
+	- visualize object locations in map too!
+	- do multi-view semantic fusion
 - Hook in LLM to reproduce nlmap-saycan
 - Write utilies to collect data on Spot + execute navigation and manipulation actions with nlmap
 

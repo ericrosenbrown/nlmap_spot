@@ -25,7 +25,7 @@ def main(argv):
 
     visualize = False #everytime we capture image, vis the results
     robot_pose = True #get camera frame in vision frame when picture taken
-    img_dir = "../spot-depth-color-pose-data/"
+    img_dir = "../data/spot-depth-color-pose-data2/"
 
     if visualize:
         from matplotlib import pyplot as plt
@@ -103,7 +103,7 @@ def main(argv):
             out = cv2.addWeighted(visual_rgb, 0.5, depth_color, 0.5, 0)
 
             cv2.imwrite(img_dir+"color_"+str(counter)+".jpg", cv_visual)
-            cv2.imwrite(img_dir+"depth_"+str(counter)+".jpg", cv_depth_meters)
+            pickle.dump(cv_depth_meters, open(img_dir+"depth_"+str(counter),"wb"))
             cv2.imwrite(img_dir+"combined_"+str(counter)+".jpg", out)
             counter += 1
 

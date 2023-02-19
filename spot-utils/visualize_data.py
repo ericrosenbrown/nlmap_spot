@@ -8,7 +8,7 @@ import open3d as o3d
 
 viz_poses = False
 
-dir_name = "spot-depth-color-pose-data/"
+dir_name = "spot-depth-color-pose-data2/"
 dir_path = "../data/"
 
 pose_data_fname = "pose_data.pkl"
@@ -56,18 +56,18 @@ num_files = int((len(file_names)-1)/ 3.0)
 for file_num in range(num_files):
 	color_img = cv2.imread(dir_path+dir_name+"color_"+str(file_num)+".jpg")
 	color_img = color_img[:,:,::-1]  # RGB-> BGR
-	depth_img = cv2.imread(dir_path+dir_name+"depth_"+str(file_num)+".jpg")
+	depth_img = pickle.load(open(dir_path+dir_name+"depth_"+str(file_num),"rb"))#cv2.imread(dir_path+dir_name+"depth_"+str(file_num)+".jpg")
 
 	print(depth_img.shape)
 
-	H,W,_ = depth_img.shape
+	H,W = depth_img.shape
 	print(H,W)
 	pcd = []
 	colors = []
 	for i in range(H):
 		for j in range(W):
 			
-			z_RGB = depth_img[i,j,0]
+			z_RGB = depth_img[i,j]
 			x_RGB = (j - CX) * z_RGB / FX
 			y_RGB = (i - CY) * z_RGB / FY
 

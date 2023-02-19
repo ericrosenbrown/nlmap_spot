@@ -76,6 +76,7 @@ model, preprocess = clip.load("ViT-B/32", device=device)
 #################################################################
 # Loop through images at path locations
 img_names = os.listdir(img_dir_path)
+img_names = [img_name for img_name in img_names if "color" in img_name]
 
 # check if cache exists
 cache_img_exists = os.path.isfile(cache_path+img_dir_name+"_images_vild")

@@ -10,7 +10,7 @@ vis_boxes = True #show image with detected bounding boxes
 vis_details = True #show details for each bounding box
 headless = False
 img_dir_root_path = "./"
-img_dir_name = "spot-images"
+img_dir_name = "spot-depth-color-pose-data"
 img_dir_path = img_dir_root_path + img_dir_name
 cache_path = "./cache/"
 saved_model_dir = "./vild/image_path_v2"
@@ -70,6 +70,7 @@ model, preprocess = clip.load("ViT-B/32", device=device)
 #################################################################
 # Loop through images at path locations
 img_names = os.listdir(img_dir_path)
+img_names = [img_name for img_name in img_names if "color" in img_name]
 
 # check if cache exists
 cache_img_exists = os.path.isfile(cache_path+img_dir_name+"_images_vild")

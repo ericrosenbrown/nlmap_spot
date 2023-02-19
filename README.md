@@ -38,7 +38,7 @@ This will find the top k crops for a sequence of strings across all images for b
 ## TODO:
 - Filter out low-score candidates
 - Make configuration file for language and other hyperparameters and load them in
-- decide on structure for 
+- decide on structure for how color, depth, and pose is stored
 - Make semantic map as in NL-Map
 	- get rgb images, depth images, robot positions, cameras intrinsics
 		- visualize robot positions
@@ -53,4 +53,4 @@ This will find the top k crops for a sequence of strings across all images for b
 - Write utilies to collect data on Spot + execute navigation and manipulation actions with nlmap
 
 ## BUGS:
-- Why do CLIP scores seem to always be slightly lower than ViLD?
+- (?) Why do CLIP scores seem to always be slightly lower than ViLD, is it due to do normalizaton issues?

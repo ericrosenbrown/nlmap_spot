@@ -38,6 +38,7 @@ This will find the top k crops for a sequence of strings across all images for b
 ## TODO:
 - Filter out low-score candidates
 - Make configuration file for language and other hyperparameters and load them in
+- decide on structure for 
 - Make semantic map as in NL-Map
 	- get rgb images, depth images, robot positions, cameras intrinsics
 		- visualize robot positions

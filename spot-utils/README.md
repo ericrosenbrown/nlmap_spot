@@ -21,7 +21,8 @@ For example:
 You will be prompted to take a photo. Move the robot where you want and then hit enter. The program will capture the depth and color image, convert the depth image to be in color image space, and then get the robot pose in the vision frame. All of this is then saved to a folder.
 
 ## TODO
-get_depth_color_pose.py should have options for visual vs. map frame
+- get_depth_color_pose.py should have options for visual vs. map frame
+- arguments should be passed in at command line instead of hard coded
 
 ## BUGS 
-(?) I am using the hand frame for get_depth_color_pose.py but I should double check that this is aligned with hand color frame
+- (?) I am using the hand frame for get_depth_color_pose.py but I should double check that this is aligned with hand color frame

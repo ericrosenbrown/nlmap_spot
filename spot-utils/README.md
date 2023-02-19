@@ -9,6 +9,10 @@ And the focal length, principal points, and skew should print out. For example, 
 
 `python3 get_intrinsics.py 138.16.161.12 --image-sources hand_color_image`
 
+for the spot rgb hand camera, the focal length for x and y may be 552.0291012161067, and principal x,y may be (320, 240), 0 skew. The relevant intrinsics matrix would be:
+
+`intrinsics_matrix = np.array([[552.0291012161067, 0 ,320.0],[0,552.0291012161067,240.0],[0,0,1]])`
+
 ## Collect depth + color images and robot poses
 You can teleoperate the spot using the controller, and then run the following program:
 

@@ -8,7 +8,7 @@ import cv2
 viz_poses = False
 
 dir_name = "spot-depth-color-pose-data/"
-dir_path = "../"
+dir_path = "../data/"
 
 pose_data_fname = "pose_data.pkl"
 pose_dir = pickle.load(open(dir_path+dir_name+pose_data_fname,"rb"))

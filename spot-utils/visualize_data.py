@@ -4,6 +4,7 @@ import math
 import numpy as np
 import os
 import cv2
+import open3d as o3d
 
 viz_poses = False
 
@@ -43,29 +44,65 @@ if viz_poses:
 
 #######################################
 # Visualize point cloud
+CX = 320
+CY = 240
+FX= 552.0291012161067
+FY = 552.0291012161067
 
-intrinsics_matrix = np.array([[552.0291012161067, 0 ,320.0],[0,552.0291012161067,240.0],[0,0,1]])
+R = np.array([[FX, 0 ,CX],[0,FY,CY],[0,0,1]])
+T = np.array([1,1,2])
 file_names = os.listdir(dir_path+dir_name)
 num_files = int((len(file_names)-1)/ 3.0)
 for file_num in range(num_files):
 	color_img = cv2.imread(dir_path+dir_name+"color_"+str(file_num)+".jpg")
+	color_img = color_img[:,:,::-1]  # RGB-> BGR
 	depth_img = cv2.imread(dir_path+dir_name+"depth_"+str(file_num)+".jpg")
 
 	print(depth_img.shape)
 
 	H,W,_ = depth_img.shape
 	print(H,W)
-	for h in range(H):
-		for w in range(W):
-			#print(w,h,depth_img[h,w])
-			pass
+	pcd = []
+	colors = []
+	for i in range(H):
+		for j in range(W):
+			
+			z_RGB = depth_img[i,j,0]
+			x_RGB = (j - CX) * z_RGB / FX
+			y_RGB = (i - CY) * z_RGB / FY
+
+			#print(i,j,depth_img[i,j],z_RGB)
+
+			"""
+			Convert from rgb camera coordinates system
+			to rgb image coordinates system:
+			"""
+
+			if z_RGB != 0:
+				j_rgb = int((x_RGB * FX) / z_RGB + CX)
+				i_rgb = int((y_RGB * FY) / z_RGB + CY)
+
+				# Add point to point cloud:
+				pcd.append([x_RGB, y_RGB, z_RGB])
+
+				# Add the color of the pixel if it exists:
+				if 0 <= j_rgb < W and 0 <= i_rgb < H:
+					colors.append(color_img[i_rgb,j_rgb] / 255)
+				else:
+					colors.append([0., 0., 0.])
+	# Convert to Open3D.PointCLoud:
+	pcd_o3d = o3d.geometry.PointCloud()  # create a point cloud object
+	pcd_o3d.points = o3d.utility.Vector3dVector(pcd)
+	pcd_o3d.colors = o3d.utility.Vector3dVector(colors)
+	# Visualize:
+	o3d.visualization.draw_geometries([pcd_o3d])
 
 	#Visualize color and depth
 
 	plt.imshow(depth_img)
 	plt.show()
 
-	plt.imshow(color_img[:,:,::-1])  # RGB-> BGR
+	plt.imshow(color_img)
 	plt.show()
 
 	min_val = np.min(depth_img)

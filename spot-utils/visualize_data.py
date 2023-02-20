@@ -6,7 +6,7 @@ import os
 import cv2
 import open3d as o3d
 
-viz_poses = False
+viz_poses = True
 
 dir_name = "spot-depth-color-pose-data2/"
 dir_path = "../data/"
@@ -53,7 +53,11 @@ R = np.array([[FX, 0 ,CX],[0,FY,CY],[0,0,1]])
 T = np.array([1,1,2])
 file_names = os.listdir(dir_path+dir_name)
 num_files = int((len(file_names)-1)/ 3.0)
+total_pcds = []
+total_axes = []
 for file_num in range(num_files):
+	total_colors = []
+
 	color_img = cv2.imread(dir_path+dir_name+"color_"+str(file_num)+".jpg")
 	color_img = color_img[:,:,::-1]  # RGB-> BGR
 	depth_img = pickle.load(open(dir_path+dir_name+"depth_"+str(file_num),"rb"))#cv2.imread(dir_path+dir_name+"depth_"+str(file_num)+".jpg")
@@ -71,6 +75,9 @@ for file_num in range(num_files):
 			x_RGB = (j - CX) * z_RGB / FX
 			y_RGB = (i - CY) * z_RGB / FY
 
+			transformed_xyz = [x_RGB,y_RGB,z_RGB]#np.matmul(pose_dir[file_num]['rotation_matrix'],np.array([x_RGB,y_RGB,z_RGB]) + pose_dir[file_num]['position'])
+			#print(transformed_xyz)
+
 			#print(i,j,depth_img[i,j],z_RGB)
 
 			"""
@@ -83,22 +90,42 @@ for file_num in range(num_files):
 				i_rgb = int((y_RGB * FY) / z_RGB + CY)
 
 				# Add point to point cloud:
-				pcd.append([x_RGB, y_RGB, z_RGB])
+				#pcd.append([x_RGB, y_RGB, z_RGB])
+				pcd.append(transformed_xyz)
 
 				# Add the color of the pixel if it exists:
 				if 0 <= j_rgb < W and 0 <= i_rgb < H:
 					colors.append(color_img[i_rgb,j_rgb] / 255)
 				else:
 					colors.append([0., 0., 0.])
-	# Convert to Open3D.PointCLoud:
+	print(pose_dir[file_num]['rotation_matrix'])
+	#mesh_origin = np.matmul(pose_dir[file_num]['rotation_matrix'],np.array([x_RGB,y_RGB,z_RGB]) + pose_dir[file_num]['position'])
+	mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.6,origin=[0,0,0])
+	rot2 = mesh_frame.get_rotation_matrix_from_xyz((0, np.pi/2, -np.pi/2))
+	mesh_frame = mesh_frame.rotate(rot2,center=(0,0,0)).rotate(pose_dir[file_num]['rotation_matrix'], center=(0, 0, 0)).translate(pose_dir[file_num]['position'])
+	#mesh_frame.paint_uniform_color([float(file_num)/num_files, 0.1, 1-(float(file_num)/num_files)])
+
+	total_axes.append(mesh_frame)
+	
+	pcd_o3d = o3d.geometry.PointCloud()  # create a point cloud object
+	pcd_o3d.points = o3d.utility.Vector3dVector(pcd)
+	pcd_o3d.colors = o3d.utility.Vector3dVector(colors)
+	rot2 = pcd_o3d.get_rotation_matrix_from_xyz((0, np.pi/2, -np.pi/2))
+
+	pcd_o3d = pcd_o3d.rotate(rot2,center=(0,0,0)).rotate(pose_dir[file_num]['rotation_matrix'], center=(0, 0, 0)).translate(pose_dir[file_num]['position'])
+
+	total_pcds.append(pcd_o3d)
+	# Convert to Open3D.PointCLoud
+	'''
 	pcd_o3d = o3d.geometry.PointCloud()  # create a point cloud object
 	pcd_o3d.points = o3d.utility.Vector3dVector(pcd)
 	pcd_o3d.colors = o3d.utility.Vector3dVector(colors)
 	# Visualize:
-	o3d.visualization.draw_geometries([pcd_o3d])
-
+	o3d.visualization.draw_geometries([pcd_o3d,mesh_frame])
+	'''
 	#Visualize color and depth
 
+	'''
 	plt.imshow(depth_img)
 	plt.show()
 
@@ -111,5 +138,12 @@ for file_num in range(num_files):
 	depth8 = (255.0 / depth_range * (depth_img - min_val)).astype('uint8')
 	plt.imshow(depth8)
 	plt.show()
+	'''
 
-
+# Convert to Open3D.PointCLoud:
+#pcd_o3d = o3d.geometry.PointCloud()  # create a point cloud object
+#pcd_o3d.points = o3d.utility.Vector3dVector(total_pcd)
+#pcd_o3d.colors = o3d.utility.Vector3dVector(total_colors)
+# Visualize:
+origin_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1,origin=[0,0,0]).rotate(rot2,center=(0,0,0))
+o3d.visualization.draw_geometries(total_pcds+total_axes+[origin_frame])

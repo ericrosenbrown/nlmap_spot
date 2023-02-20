@@ -30,3 +30,4 @@ You will be prompted to take a photo. Move the robot where you want and then hit
 
 ## BUGS 
 - (?) I am using the hand frame for get_depth_color_pose.py but I should double check that this is aligned with hand color frame
+	- Seems like it's not the same exact frame, but there is an off-set that is calculated in visualize_data.py currently, move it somewhere else

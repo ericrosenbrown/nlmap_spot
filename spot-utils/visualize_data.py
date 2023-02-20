@@ -49,6 +49,13 @@ CY = 240
 FX= 552.0291012161067
 FY = 552.0291012161067
 
+#rot2_mat comes from rot2 line below, just a hardcoded version of it, it's the rotation from camera to hand frame
+#rot2 = mesh_frame.get_rotation_matrix_from_xyz((0, np.pi/2, -np.pi/2))
+rot2_mat = np.array([[ 3.74939946e-33,6.12323400e-17,1.00000000e+00],
+ [-1.00000000e+00,6.12323400e-17,0.00000000e+00],
+ [-6.12323400e-17,-1.00000000e+00,6.12323400e-17]])
+
+
 R = np.array([[FX, 0 ,CX],[0,FY,CY],[0,0,1]])
 T = np.array([1,1,2])
 file_names = os.listdir(dir_path+dir_name)
@@ -75,8 +82,8 @@ for file_num in range(num_files):
 			x_RGB = (j - CX) * z_RGB / FX
 			y_RGB = (i - CY) * z_RGB / FY
 
-			transformed_xyz = [x_RGB,y_RGB,z_RGB]#np.matmul(pose_dir[file_num]['rotation_matrix'],np.array([x_RGB,y_RGB,z_RGB]) + pose_dir[file_num]['position'])
-			#print(transformed_xyz)
+			#first apply rot2 to move camera into hand frame, then apply rotation + transform of hand frame in vision frame
+			transformed_xyz = np.matmul(pose_dir[file_num]['rotation_matrix'],np.matmul(rot2_mat,np.array([x_RGB,y_RGB,z_RGB]))) + pose_dir[file_num]['position']
 
 			#print(i,j,depth_img[i,j],z_RGB)
 
@@ -98,11 +105,9 @@ for file_num in range(num_files):
 					colors.append(color_img[i_rgb,j_rgb] / 255)
 				else:
 					colors.append([0., 0., 0.])
-	print(pose_dir[file_num]['rotation_matrix'])
-	#mesh_origin = np.matmul(pose_dir[file_num]['rotation_matrix'],np.array([x_RGB,y_RGB,z_RGB]) + pose_dir[file_num]['position'])
+
 	mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.6,origin=[0,0,0])
-	rot2 = mesh_frame.get_rotation_matrix_from_xyz((0, np.pi/2, -np.pi/2))
-	mesh_frame = mesh_frame.rotate(rot2,center=(0,0,0)).rotate(pose_dir[file_num]['rotation_matrix'], center=(0, 0, 0)).translate(pose_dir[file_num]['position'])
+	mesh_frame = mesh_frame.rotate(rot2_mat,center=(0,0,0)).rotate(pose_dir[file_num]['rotation_matrix'], center=(0, 0, 0)).translate(pose_dir[file_num]['position'])
 	#mesh_frame.paint_uniform_color([float(file_num)/num_files, 0.1, 1-(float(file_num)/num_files)])
 
 	total_axes.append(mesh_frame)
@@ -110,9 +115,6 @@ for file_num in range(num_files):
 	pcd_o3d = o3d.geometry.PointCloud()  # create a point cloud object
 	pcd_o3d.points = o3d.utility.Vector3dVector(pcd)
 	pcd_o3d.colors = o3d.utility.Vector3dVector(colors)
-	rot2 = pcd_o3d.get_rotation_matrix_from_xyz((0, np.pi/2, -np.pi/2))
-
-	pcd_o3d = pcd_o3d.rotate(rot2,center=(0,0,0)).rotate(pose_dir[file_num]['rotation_matrix'], center=(0, 0, 0)).translate(pose_dir[file_num]['position'])
 
 	total_pcds.append(pcd_o3d)
 	# Convert to Open3D.PointCLoud
@@ -145,5 +147,5 @@ for file_num in range(num_files):
 #pcd_o3d.points = o3d.utility.Vector3dVector(total_pcd)
 #pcd_o3d.colors = o3d.utility.Vector3dVector(total_colors)
 # Visualize:
-origin_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1,origin=[0,0,0]).rotate(rot2,center=(0,0,0))
+origin_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1,origin=[0,0,0]).rotate(rot2_mat,center=(0,0,0))
 o3d.visualization.draw_geometries(total_pcds+total_axes+[origin_frame])

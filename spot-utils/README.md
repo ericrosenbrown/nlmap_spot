@@ -24,6 +24,11 @@ For example:
 
 You will be prompted to take a photo. Move the robot where you want and then hit enter. The program will capture the depth and color image, convert the depth image to be in color image space, and then get the robot pose in the vision frame. All of this is then saved to a folder.
 
+## Generate pointcloud from data
+After collecting depth, color and pose data, we can generate a point cloud of the scene, along with axes representing the pose of the robot's hand in the vision frame. In addition, we can save the pointcloud file in the same location we have the sensor data
+
+`python generate_pointcloud.py`
+
 ## TODO
 - get_depth_color_pose.py should have options for visual vs. map frame
 - arguments should be passed in at command line instead of hard coded

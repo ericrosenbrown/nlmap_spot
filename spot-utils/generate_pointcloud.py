@@ -7,7 +7,7 @@ import cv2
 import open3d as o3d
 from tqdm import tqdm
 
-dir_name = "spot-depth-color-pose-data2/"
+dir_name = "spot-depth-color-pose-data3/"
 dir_path = "../data/"
 
 pose_data_fname = "pose_data.pkl"
@@ -72,7 +72,7 @@ for file_num in tqdm(range(num_files)):
 					total_colors.append([0., 0., 0.])
 
 	mesh_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.6,origin=[0,0,0])
-	mesh_frame = mesh_frame.rotate(rot2_mat,center=(0,0,0)).rotate(pose_dir[file_num]['rotation_matrix'], center=(0, 0, 0)).translate(pose_dir[file_num]['position'])
+	mesh_frame = mesh_frame.rotate(pose_dir[file_num]['rotation_matrix'], center=(0, 0, 0)).translate(pose_dir[file_num]['position'])
 	#mesh_frame.paint_uniform_color([float(file_num)/num_files, 0.1, 1-(float(file_num)/num_files)])
 
 	total_axes.append(mesh_frame)
@@ -81,8 +81,10 @@ pcd_o3d = o3d.geometry.PointCloud()  # create a point cloud object
 pcd_o3d.points = o3d.utility.Vector3dVector(total_pcds)
 pcd_o3d.colors = o3d.utility.Vector3dVector(total_colors)
 
+bb = o3d.geometry.OrientedBoundingBox(center=np.array([0,0,0]),R=rot2_mat,extent=np.array([1,1,1]))
+
 # Visualize:
-origin_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1,origin=[0,0,0]).rotate(rot2_mat,center=(0,0,0))
-o3d.visualization.draw_geometries([pcd_o3d]+total_axes+[origin_frame])
+origin_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=1,origin=[0,0,0])
+o3d.visualization.draw_geometries([pcd_o3d]+total_axes+[origin_frame]+[bb])
 
 o3d.io.write_point_cloud(dir_path+dir_name+"pointcloud.pcd", pcd_o3d)

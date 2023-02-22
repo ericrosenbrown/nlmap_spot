@@ -120,7 +120,7 @@ for img_name in img_names:
 		scores_all = raw_scores
 
 	indices = np.argsort(-np.max(scores_all, axis=1))  # Results are ranked by scores
-	indices_fg = np.array([i for i in indices if np.argmax(scores_all[i]) != 0])
+	indices_fg = indices#np.array([i for i in indices if np.argmax(scores_all[i]) != 0])
 
 	#################################################################
 	# Plot detected boxes on the input image.
@@ -170,8 +170,6 @@ for img_name in img_names:
 		rpn_score = detection_roi_scores[anno_idx]
 		bbox = rescaled_detection_boxes[anno_idx]
 		scores = scores_all[anno_idx]
-		if np.argmax(scores) == 0:
-		  continue
 
 		y1, x1, y2, x2 = int(np.floor(bbox[0])), int(np.floor(bbox[1])), int(np.ceil(bbox[2])), int(np.ceil(bbox[3]))
 		crop = np.copy(raw_image[y1:y2, x1:x2, :])

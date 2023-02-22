@@ -46,7 +46,7 @@ category_name_string = ';'.join(['flipflop', 'street sign', 'bracelet',
 '''
 #category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pillow; Blanket; Clock; Picture frame; Vase; Lampshade; Candlestick; Books; Magazines; DVD player; CD player; Record player; Video game console; Board game; Card game; Chess set; Backgammon set; Carpet; Drapes; Blinds; Shelving unit; Side table; Coffee table; Footstool; Armchair; Bean bag; Desk; Office chair; Computer; Printer; Scanner; Fax machine; Telephone; Cell phone; Lamp; Lamp; Rug; Trash can; Wastebasket; Vacuum cleaner; Broom; Dustpan; Mop; Bucket; Dust cloth; Cleaning supplies; Iron; Ironing board; Hair dryer; Curling iron; Toilet brush; Towels; Soap; Shampoo; Toothbrush; Toothpaste; Razor; Shaving cream; Deodorant; Hairbrush; Hair ties; Makeup; Nail polish; Perfume; Cologne; Laundry basket; Clothes hanger; Closet; Dresser; Bed; Mattress; Pillows; Sheets; Blanket; Comforter; Quilt; Bedspread; Nightstand; Alarm clock; Lamp; Lamp; Rug"
 #category_name_string = "Table; Chair"
-category_name_string = "Hairbrush; Lamp; Chair; Sofa; Books; Television" 
+category_name_string = "Chair; Books; Television" 
 
 category_names = [x.strip() for x in category_name_string.split(';')]
 #category_names = ['background'] + category_names
@@ -114,7 +114,7 @@ for img_name in tqdm(img_names):
 		scores_all = raw_scores
 
 	indices = np.argsort(-np.max(scores_all, axis=1))  # Results are ranked by scores
-	indices_fg = np.array([i for i in indices if np.argmax(scores_all[i]) != 0])
+	indices_fg = indices#np.array([i for i in indices if np.argmax(scores_all[i]) != 0])
 
 	#################################################################
 	# Plot detected boxes on the input image.
@@ -164,8 +164,6 @@ for img_name in tqdm(img_names):
 		rpn_score = detection_roi_scores[anno_idx]
 		bbox = rescaled_detection_boxes[anno_idx]
 		scores = scores_all[anno_idx]
-		if np.argmax(scores) == 0:
-		  continue
 
 		y1, x1, y2, x2 = int(np.floor(bbox[0])), int(np.floor(bbox[1])), int(np.ceil(bbox[2])), int(np.ceil(bbox[3]))
 		crop = np.copy(raw_image[y1:y2, x1:x2, :])

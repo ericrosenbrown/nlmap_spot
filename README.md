@@ -31,6 +31,12 @@ This will take all the images from spot-images, run ViLD on each to extract boun
 
 There are cache options to save CLIP image features and textures + ViLD image features. This way, it is faster to run next time. You can just delete the cache if you make any changes.
 
+If you'd like to see where each of the bounding boxes are in the pointcloud, go to spot_utils, generate a pointcloud first, then you can run:
+
+`python pointcloud_classify_all.py`
+
+If you want to see the top k results for a query, then do:
+
 `python classify_top_k.py`
 
 This will find the top k crops for a sequence of strings across all images for both ViLD and CLIP and visualize them.
@@ -50,3 +56,4 @@ This will find the top k crops for a sequence of strings across all images for b
 
 ## BUGS:
 - (?) Why do CLIP scores seem to always be slightly lower than ViLD, is it due to do normalizaton issues?
+- in pointcloud_classify_all.py etc. there is a window error when trying to visualize matplotlib and open3d? Seems like I can only do one for some reason, so currently needs to be run in headless mode

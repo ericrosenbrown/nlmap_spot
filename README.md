@@ -42,6 +42,7 @@ If you want to see the top k results for a query, then do:
 This will find the top k crops for a sequence of strings across all images for both ViLD and CLIP and visualize them.
 
 ## TODO:
+- make data collection on spot have continuous mode (maybe even autonomous?)
 - clean out unneeded print statements
 - Filter out low-score candidates
 - Make configuration file for language and other hyperparameters and load them in
@@ -54,6 +55,8 @@ This will find the top k crops for a sequence of strings across all images for b
 	- do multi-view semantic fusion
 - Hook in LLM to reproduce nlmap-saycan
 - Write utilies to collect data on Spot + execute navigation and manipulation actions with nlmap
+- Set up distributed processing so entire pipeline can happen in parallel and on robot platform
+
 
 ## BUGS:
 - (?) Why do CLIP scores seem to always be slightly lower than ViLD, is it due to do normalizaton issues?

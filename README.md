@@ -36,17 +36,13 @@ There are cache options to save CLIP image features and textures + ViLD image fe
 This will find the top k crops for a sequence of strings across all images for both ViLD and CLIP and visualize them.
 
 ## TODO:
+- clean out unneeded print statements
 - Filter out low-score candidates
 - Make configuration file for language and other hyperparameters and load them in
 - decide on structure for how color, depth, and pose is stored
 - Make semantic map as in NL-Map
-	- get rgb images, depth images, robot positions, cameras intrinsics
-		- visualize robot positions
-		- visualize pointcloud in camera frame from depth + intrinsics
-		- visualize all point clouds in vision frame with robot positions
 	- run classify_top_k on rgb images
 	- use bounding boxes to get estimated size of objects
-	- get position of bounding boxes based on middle pixel
 	- visualize object locations in map too!
 	- do multi-view semantic fusion
 - Hook in LLM to reproduce nlmap-saycan

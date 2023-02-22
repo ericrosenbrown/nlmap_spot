@@ -39,7 +39,11 @@ If you want to see the top k results for a query, then do:
 
 `python classify_top_k.py`
 
-This will find the top k crops for a sequence of strings across all images for both ViLD and CLIP and visualize them.
+This will find the top k crops for a sequence of strings across all images for both ViLD and CLIP and visualize them. 
+
+If you'd like to see where each of the top k bounding boxes are in the pointcloud, generate the point cloud with spot_utils and run:
+
+`python pointcloud_classify_top_k.py`
 
 ## TODO:
 - make data collection on spot have continuous mode (maybe even autonomous?)

@@ -10,7 +10,7 @@ cache_images = True #load image cache if available, make image cache when needed
 cache_text = True#same but for text
 vis_boxes = True #show image with detected bounding boxes
 vis_details = True #show details for each bounding box
-headless = False
+headless = True
 img_dir_root_path = "./data/"
 img_dir_name = "spot-depth-color-pose-data3"
 img_dir_path = img_dir_root_path + img_dir_name
@@ -52,8 +52,10 @@ category_name_string = ';'.join(['flipflop', 'street sign', 'bracelet',
     'transparent umbrella', 'plain pink umbrella', 'blue patterned umbrella',
     'koala', 'electric box','car', 'pole'])
 '''
-category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pillow; Blanket; Clock; Picture frame; Vase; Lampshade; Candlestick; Books; Magazines; DVD player; CD player; Record player; Video game console; Board game; Card game; Chess set; Backgammon set; Carpet; Drapes; Blinds; Shelving unit; Side table; Coffee table; Footstool; Armchair; Bean bag; Desk; Office chair; Computer; Printer; Scanner; Fax machine; Telephone; Cell phone; Lamp; Lamp; Rug; Trash can; Wastebasket; Vacuum cleaner; Broom; Dustpan; Mop; Bucket; Dust cloth; Cleaning supplies; Iron; Ironing board; Hair dryer; Curling iron; Toilet brush; Towels; Soap; Shampoo; Toothbrush; Toothpaste; Razor; Shaving cream; Deodorant; Hairbrush; Hair ties; Makeup; Nail polish; Perfume; Cologne; Laundry basket; Clothes hanger; Closet; Dresser; Bed; Mattress; Pillows; Sheets; Blanket; Comforter; Quilt; Bedspread; Nightstand; Alarm clock; Lamp; Lamp; Rug"
+#category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pillow; Blanket; Clock; Picture frame; Vase; Lampshade; Candlestick; Books; Magazines; DVD player; CD player; Record player; Video game console; Board game; Card game; Chess set; Backgammon set; Carpet; Drapes; Blinds; Shelving unit; Side table; Coffee table; Footstool; Armchair; Bean bag; Desk; Office chair; Computer; Printer; Scanner; Fax machine; Telephone; Cell phone; Lamp; Lamp; Rug; Trash can; Wastebasket; Vacuum cleaner; Broom; Dustpan; Mop; Bucket; Dust cloth; Cleaning supplies; Iron; Ironing board; Hair dryer; Curling iron; Toilet brush; Towels; Soap; Shampoo; Toothbrush; Toothpaste; Razor; Shaving cream; Deodorant; Hairbrush; Hair ties; Makeup; Nail polish; Perfume; Cologne; Laundry basket; Clothes hanger; Closet; Dresser; Bed; Mattress; Pillows; Sheets; Blanket; Comforter; Quilt; Bedspread; Nightstand; Alarm clock; Lamp; Lamp; Rug"
 #category_name_string = "Table; Chair"
+category_name_string = "Hairbrush; Lamp; Chair; Sofa; Books; Television" 
+
 
 category_names = [x.strip() for x in category_name_string.split(';')]
 #category_names = ['background'] + category_names
@@ -203,7 +205,6 @@ for img_name in img_names:
 
 		if not headless and vis_details:
 			fig, axs = plt.subplots(1, 4, figsize=(fig_size_w, fig_size_h), gridspec_kw={'width_ratios': [3, 1, 1, 2]}, constrained_layout=True)
-
 			# Draw bounding box.
 			rect = patches.Rectangle((x1, y1), x2-x1, y2-y1, linewidth=line_thickness, edgecolor='r', facecolor='none')
 			axs[0].add_patch(rect)
@@ -249,12 +250,8 @@ for img_name in img_names:
 		center_y = int((ymin[anno_idx] + ymax[anno_idx])/2.0)
 		center_x = int((xmin[anno_idx] + xmax[anno_idx])/2.0)
 
-		print("middle of the image")
-		print(center_y,center_x)
-
 		#### Point cloud visualization
 		file_num = int(img_name.split("_")[-1].split(".")[0])
-		print("File num is ",file_num)
 		depth_img = pickle.load(open(img_dir_root_path+img_dir_name+"/depth_"+str(file_num),"rb"))
 		rotation_matrix = pose_dir[file_num]['rotation_matrix']
 		position = pose_dir[file_num]['position']

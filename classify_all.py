@@ -1,6 +1,7 @@
 from vild.vild_utils import *
 import pickle
 import os
+from tqdm import tqdm
 
 #################################################################
 # Hyperparameters and general initialization
@@ -10,7 +11,7 @@ vis_boxes = True #show image with detected bounding boxes
 vis_details = True #show details for each bounding box
 headless = False
 img_dir_root_path = "./data/"
-img_dir_name = "spot-depth-color-pose-data"
+img_dir_name = "spot-depth-color-pose-data3"
 img_dir_path = img_dir_root_path + img_dir_name
 cache_path = "./cache/"
 saved_model_dir = "./vild/image_path_v2"
@@ -43,8 +44,9 @@ category_name_string = ';'.join(['flipflop', 'street sign', 'bracelet',
     'transparent umbrella', 'plain pink umbrella', 'blue patterned umbrella',
     'koala', 'electric box','car', 'pole'])
 '''
-category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pillow; Blanket; Clock; Picture frame; Vase; Lampshade; Candlestick; Books; Magazines; DVD player; CD player; Record player; Video game console; Board game; Card game; Chess set; Backgammon set; Carpet; Drapes; Blinds; Shelving unit; Side table; Coffee table; Footstool; Armchair; Bean bag; Desk; Office chair; Computer; Printer; Scanner; Fax machine; Telephone; Cell phone; Lamp; Lamp; Rug; Trash can; Wastebasket; Vacuum cleaner; Broom; Dustpan; Mop; Bucket; Dust cloth; Cleaning supplies; Iron; Ironing board; Hair dryer; Curling iron; Toilet brush; Towels; Soap; Shampoo; Toothbrush; Toothpaste; Razor; Shaving cream; Deodorant; Hairbrush; Hair ties; Makeup; Nail polish; Perfume; Cologne; Laundry basket; Clothes hanger; Closet; Dresser; Bed; Mattress; Pillows; Sheets; Blanket; Comforter; Quilt; Bedspread; Nightstand; Alarm clock; Lamp; Lamp; Rug"
+#category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pillow; Blanket; Clock; Picture frame; Vase; Lampshade; Candlestick; Books; Magazines; DVD player; CD player; Record player; Video game console; Board game; Card game; Chess set; Backgammon set; Carpet; Drapes; Blinds; Shelving unit; Side table; Coffee table; Footstool; Armchair; Bean bag; Desk; Office chair; Computer; Printer; Scanner; Fax machine; Telephone; Cell phone; Lamp; Lamp; Rug; Trash can; Wastebasket; Vacuum cleaner; Broom; Dustpan; Mop; Bucket; Dust cloth; Cleaning supplies; Iron; Ironing board; Hair dryer; Curling iron; Toilet brush; Towels; Soap; Shampoo; Toothbrush; Toothpaste; Razor; Shaving cream; Deodorant; Hairbrush; Hair ties; Makeup; Nail polish; Perfume; Cologne; Laundry basket; Clothes hanger; Closet; Dresser; Bed; Mattress; Pillows; Sheets; Blanket; Comforter; Quilt; Bedspread; Nightstand; Alarm clock; Lamp; Lamp; Rug"
 #category_name_string = "Table; Chair"
+category_name_string = "Hairbrush; Lamp; Chair; Sofa; Books; Television" 
 
 category_names = [x.strip() for x in category_name_string.split(';')]
 #category_names = ['background'] + category_names
@@ -86,7 +88,7 @@ if not cache_img_exists:
 	# Load ViLD model
 	session = tf.Session(graph=tf.Graph())
 	_ = tf.saved_model.loader.load(session, ['serve'], saved_model_dir)
-for img_name in img_names:
+for img_name in tqdm(img_names):
 	image_path = img_dir_path + "/" + img_name
 	print(image_path)
 

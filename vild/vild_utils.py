@@ -686,7 +686,7 @@ def extract_roi_vild(image_path,session,overall_fig_size,params):
         )    
       )
   )[0]
-  print('number of valid indices', len(valid_indices))
+  #print('number of valid indices', len(valid_indices))
 
   detection_roi_scores = roi_scores[valid_indices][:max_boxes_to_draw, ...]
   detection_boxes = detection_boxes[valid_indices][:max_boxes_to_draw, ...]

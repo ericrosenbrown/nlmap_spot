@@ -4,6 +4,7 @@ import os
 from collections import defaultdict
 import math
 from queue import PriorityQueue
+from tqdm import tqdm
 
 #################################################################
 # Hyperparameters and general initialization
@@ -14,7 +15,7 @@ vis_details = False #show details for each bounding box
 headless = False #no visualization at all
 top_k = 5 #top k scores for models get stored
 img_dir_root_path = "./data/"
-img_dir_name = "spot-images"
+img_dir_name = "spot-depth-color-pose-data3"
 img_dir_path = img_dir_root_path + img_dir_name
 cache_path = "./cache/"
 saved_model_dir = "./vild/image_path_v2"
@@ -95,7 +96,7 @@ if not cache_img_exists:
 
 priority_queue_clip_dir = defaultdict(lambda: PriorityQueue()) #keys will be category names. The priority will be negative score (since lowest gets dequeue) and items be image, anno_idx, and crop
 priority_queue_vild_dir = defaultdict(lambda: PriorityQueue()) #keys will be category names. The priority will be negative score (since lowest gets dequeue) and items be image, anno_idx, and crop
-for img_name in img_names:
+for img_name in tqdm(img_names):
 	image_path = img_dir_path + "/" + img_name
 	#print(image_path)
 
@@ -264,7 +265,7 @@ for img_name in img_names:
 		# fig.tight_layout()
 
 
-	print('Detection counts:', cnt)
+	#print('Detection counts:', cnt)
 	#plt.show()
 if cache_images and not cache_img_exists:
 	pickle.dump(img2vectorvild_dir,open(cache_path+img_dir_name+"_images_vild","wb"))

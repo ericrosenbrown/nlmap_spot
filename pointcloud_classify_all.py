@@ -10,7 +10,7 @@ cache_images = True #load image cache if available, make image cache when needed
 cache_text = True#same but for text
 vis_boxes = True #show image with detected bounding boxes
 vis_details = True #show details for each bounding box
-headless = True
+headless = False
 img_dir_root_path = "./data/"
 img_dir_name = "spot-depth-color-pose-data3"
 img_dir_path = img_dir_root_path + img_dir_name
@@ -246,7 +246,6 @@ for img_name in img_names:
 		cnt += 1
 		# fig.tight_layout()
 
-		ymin, xmin, ymax, xmax
 		center_y = int((ymin[anno_idx] + ymax[anno_idx])/2.0)
 		center_x = int((xmin[anno_idx] + xmax[anno_idx])/2.0)
 

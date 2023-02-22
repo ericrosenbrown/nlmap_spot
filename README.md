@@ -46,6 +46,7 @@ This will find the top k crops for a sequence of strings across all images for b
 - Filter out low-score candidates
 - Make configuration file for language and other hyperparameters and load them in
 - decide on structure for how color, depth, and pose is stored
+- don't use center pixel of bounding box, instead use "center" of mask
 - Make semantic map as in NL-Map
 	- run classify_top_k on rgb images
 	- use bounding boxes to get estimated size of objects

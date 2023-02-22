@@ -10,8 +10,8 @@ from spot_utils.utils import pixel_to_vision_frame
 
 #################################################################
 # Hyperparameters and general initialization
-cache_images = True #load image cache if available, make image cache when needed
-cache_text = True#same but for text
+cache_images = False #load image cache if available, make image cache when needed
+cache_text = False#same but for text
 vis_boxes = False #show image with detected bounding boxes
 vis_details = False #show details for each bounding box
 headless = False #no visualization at all
@@ -58,7 +58,7 @@ category_name_string = ';'.join(['flipflop', 'street sign', 'bracelet',
 '''
 #category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pillow; Blanket; Clock; Picture frame; Vase; Lampshade; Candlestick; Books; Magazines; DVD player; CD player; Record player; Video game console; Board game; Card game; Chess set; Backgammon set; Carpet; Drapes; Blinds; Shelving unit; Side table; Coffee table; Footstool; Armchair; Bean bag; Desk; Office chair; Computer; Printer; Scanner; Fax machine; Telephone; Cell phone; Rug; Trash can; Wastebasket; Vacuum cleaner; Broom; Dustpan; Mop; Bucket; Dust cloth; Cleaning supplies; Iron; Ironing board; Hair dryer; Curling iron; Toilet brush; Towels; Soap; Shampoo; Toothbrush; Toothpaste; Razor; Shaving cream; Deodorant; Hairbrush; Hair ties; Makeup; Nail polish; Perfume; Cologne; Laundry basket; Clothes hanger; Closet; Dresser; Bed; Mattress; Pillows; Sheets; Blanket; Comforter; Quilt; Bedspread; Nightstand; Alarm clock; Lamp; Lamp; Rug"
 #category_name_string = "Hairbrush; Lamp; Chair; Sofa; Books; Television" 
-category_name_string = "Whiteboard; lampshade" 
+category_name_string = "Boxes; Hairbrush; Lamp; Chair; Sofa; Books; Television" 
 #category_name_string = "food; chair; person; sofa; pillow; table; book"
 
 category_names = [x.strip() for x in category_name_string.split(';')]
@@ -97,7 +97,7 @@ if cache_images:
 	else:
 		img2vectorvild_dir = {}
 		img2vectorclip_dir = {}
-if not cache_img_exists:
+if not cache_img_exists or not cache_images:
 	# Load ViLD model
 	session = tf.Session(graph=tf.Graph())
 	_ = tf.saved_model.loader.load(session, ['serve'], saved_model_dir)
@@ -130,7 +130,8 @@ for img_name in tqdm(img_names):
 		scores_all = raw_scores
 
 	indices = np.argsort(-np.max(scores_all, axis=1))  # Results are ranked by scores
-	indices_fg = np.array([i for i in indices if np.argmax(scores_all[i]) != 0])
+	indices_fg = indices #I've replaced the line below with this because original code base treated first idx as background and removed it, not relevant here
+	#indices_fg = np.array([i for i in indices if np.argmax(scores_all[i]) != 0])
 
 	#################################################################
 	# Plot detected boxes on the input image.
@@ -180,9 +181,6 @@ for img_name in tqdm(img_names):
 		rpn_score = detection_roi_scores[anno_idx]
 		bbox = rescaled_detection_boxes[anno_idx]
 		scores = scores_all[anno_idx]
-		if np.argmax(scores) == 0:
-		  continue
-
 
 		y1, x1, y2, x2 = int(np.floor(bbox[0])), int(np.floor(bbox[1])), int(np.ceil(bbox[2])), int(np.ceil(bbox[3]))
 		crop = np.copy(raw_image[y1:y2, x1:x2, :])

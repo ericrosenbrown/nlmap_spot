@@ -16,13 +16,13 @@ for the spot rgb hand camera, the focal length for x and y may be 552.0291012161
 ## Collect depth + color images and robot poses
 You can teleoperate the spot using the controller, and then run the following program:
 
-`python get_depth_color_pose.py ROBOT_IP`
+`python get_depth_color_pose.py --manual_images [True/False] ROBOT_IP`
 
 For example:
 
-`python get_depth_color_pose.py 138.16.161.12`
+`python get_depth_color_pose.py --manual_images True 138.16.161.12`
 
-You will be prompted to take a photo. Move the robot where you want and then hit enter. The program will capture the depth and color image, convert the depth image to be in color image space, and then get the robot pose in the vision frame. All of this is then saved to a folder.
+You will be prompted to take a photo all the time. Move the robot where you want and then hit enter. The program will capture the depth and color image, convert the depth image to be in color image space, and then get the robot pose in the vision frame. All of this is then saved to a folder. If you'd prefer the robot to continuously take images at a fixed frequency, pass False to the manual_images flag.
 
 ## Generate pointcloud from data
 After collecting depth, color and pose data, we can generate a point cloud of the scene, along with axes representing the pose of the robot's hand in the vision frame. In addition, we can save the pointcloud file in the same location we have the sensor data

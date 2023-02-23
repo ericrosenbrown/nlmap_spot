@@ -7,7 +7,10 @@
 """Example demonstrating capture of both visual and depth images and then overlaying them."""
 
 import argparse
+
 import sys
+import os
+import time
 
 import bosdyn.client
 import bosdyn.client.util
@@ -19,19 +22,30 @@ import numpy as np
 
 def main(argv):
     # Parse args
+
     parser = argparse.ArgumentParser()
     bosdyn.client.util.add_base_arguments(parser)
+    parser.add_argument("--manual_images", help="Whether images are taken manually or continuously",default="True")
     options = parser.parse_args(argv)
+
+    if options.manual_images == "True":
+        manual_images = True
+    else:
+        manual_images = False
 
     visualize = False #everytime we capture image, vis the results
     robot_pose = True #get camera frame in vision frame when picture taken
-    img_dir = "../data/spot-depth-color-pose-data3/"
+    img_dir = "../data/spot-depth-color-pose-data5/"
+    pic_hz = 2 #if manual_images is false, the hz at which images are automatically taken
 
     if visualize:
         from matplotlib import pyplot as plt
     if robot_pose:
         from bosdyn.client.frame_helpers import get_a_tform_b, get_frame_names
         import pickle
+
+    if not os.path.isdir(img_dir):
+        os.mkdir(img_dir)
 
 
     #We only use the hand color
@@ -46,76 +60,79 @@ def main(argv):
     counter = 0
     img_to_pose_dir = {} #takes in counter as key, and returns robot pose. saved in img_dir
     while True:
-        response = input("Take image [y/n]")
-        if response == "n":
-            break
+        if manual_images:
+            response = input("Take image [y/n]")
+            if response == "n":
+                break
         else:
-            # Capture and save images to disk
-            image_responses = image_client.get_image_from_sources(sources)
+            time.sleep(1/float(pic_hz))
 
-            if robot_pose:
-                frame_tree_snapshot = robot.get_frame_tree_snapshot()
-                vision_tform_hand = get_a_tform_b(frame_tree_snapshot,"vision","hand")
+        # Capture and save images to disk
+        image_responses = image_client.get_image_from_sources(sources)
 
-                img_to_pose_dir[counter] = {"position": [vision_tform_hand.position.x,vision_tform_hand.position.y,vision_tform_hand.position.z], 
-                "quaternion(wxyz)": [vision_tform_hand.rotation.w,vision_tform_hand.rotation.x,vision_tform_hand.rotation.y,vision_tform_hand.rotation.z],
-                "rotation_matrix": vision_tform_hand.rotation.to_matrix(),
-                "rpy": [vision_tform_hand.rotation.to_roll(),vision_tform_hand.rotation.to_pitch(),vision_tform_hand.rotation.to_yaw()]}
-                
-                pickle.dump(img_to_pose_dir,open(img_dir+"pose_data.pkl","wb"))
+        if robot_pose:
+            frame_tree_snapshot = robot.get_frame_tree_snapshot()
+            vision_tform_hand = get_a_tform_b(frame_tree_snapshot,"vision","hand")
 
-            # Image responses are in the same order as the requests.
-            # Convert to opencv images.
+            img_to_pose_dir[counter] = {"position": [vision_tform_hand.position.x,vision_tform_hand.position.y,vision_tform_hand.position.z], 
+            "quaternion(wxyz)": [vision_tform_hand.rotation.w,vision_tform_hand.rotation.x,vision_tform_hand.rotation.y,vision_tform_hand.rotation.z],
+            "rotation_matrix": vision_tform_hand.rotation.to_matrix(),
+            "rpy": [vision_tform_hand.rotation.to_roll(),vision_tform_hand.rotation.to_pitch(),vision_tform_hand.rotation.to_yaw()]}
+            
+            pickle.dump(img_to_pose_dir,open(img_dir+"pose_data.pkl","wb"))
 
-            if len(image_responses) < 2:
-                print('Error: failed to get images.')
-                return False
+        # Image responses are in the same order as the requests.
+        # Convert to opencv images.
 
-            # Depth is a raw bytestream
-            cv_depth = np.frombuffer(image_responses[0].shot.image.data, dtype=np.uint16)
-            cv_depth = cv_depth.reshape(image_responses[0].shot.image.rows,
-                                        image_responses[0].shot.image.cols)
+        if len(image_responses) < 2:
+            print('Error: failed to get images.')
+            return False
 
-            #cv_depth is in millimeters, divide by 1000 to get it into meters
-            cv_depth_meters = cv_depth / 1000.0
+        # Depth is a raw bytestream
+        cv_depth = np.frombuffer(image_responses[0].shot.image.data, dtype=np.uint16)
+        cv_depth = cv_depth.reshape(image_responses[0].shot.image.rows,
+                                    image_responses[0].shot.image.cols)
 
-            # Visual is a JPEG
-            cv_visual = cv2.imdecode(np.frombuffer(image_responses[1].shot.image.data, dtype=np.uint8), -1)
+        #cv_depth is in millimeters, divide by 1000 to get it into meters
+        cv_depth_meters = cv_depth / 1000.0
 
-            #cv2.imwrite("color.jpg", cv_visual)
+        # Visual is a JPEG
+        cv_visual = cv2.imdecode(np.frombuffer(image_responses[1].shot.image.data, dtype=np.uint8), -1)
 
-            # Convert the visual image from a single channel to RGB so we can add color
-            visual_rgb = cv_visual if len(cv_visual.shape) == 3 else cv2.cvtColor(cv_visual, cv2.COLOR_GRAY2RGB)
+        #cv2.imwrite("color.jpg", cv_visual)
+
+        # Convert the visual image from a single channel to RGB so we can add color
+        visual_rgb = cv_visual if len(cv_visual.shape) == 3 else cv2.cvtColor(cv_visual, cv2.COLOR_GRAY2RGB)
 
 
 
-            # Map depth ranges to color
+        # Map depth ranges to color
 
-            # cv2.applyColorMap() only supports 8-bit; convert from 16-bit to 8-bit and do scaling
-            min_val = np.min(cv_depth)
-            max_val = np.max(cv_depth)
-            depth_range = max_val - min_val
-            depth8 = (255.0 / depth_range * (cv_depth - min_val)).astype('uint8')
-            depth8_rgb = cv2.cvtColor(depth8, cv2.COLOR_GRAY2RGB)
-            depth_color = cv2.applyColorMap(depth8_rgb, cv2.COLORMAP_JET)
+        # cv2.applyColorMap() only supports 8-bit; convert from 16-bit to 8-bit and do scaling
+        min_val = np.min(cv_depth)
+        max_val = np.max(cv_depth)
+        depth_range = max_val - min_val
+        depth8 = (255.0 / depth_range * (cv_depth - min_val)).astype('uint8')
+        depth8_rgb = cv2.cvtColor(depth8, cv2.COLOR_GRAY2RGB)
+        depth_color = cv2.applyColorMap(depth8_rgb, cv2.COLORMAP_JET)
 
-            # Add the two images together.
-            out = cv2.addWeighted(visual_rgb, 0.5, depth_color, 0.5, 0)
+        # Add the two images together.
+        out = cv2.addWeighted(visual_rgb, 0.5, depth_color, 0.5, 0)
 
-            cv2.imwrite(img_dir+"color_"+str(counter)+".jpg", cv_visual)
-            pickle.dump(cv_depth_meters, open(img_dir+"depth_"+str(counter),"wb"))
-            cv2.imwrite(img_dir+"combined_"+str(counter)+".jpg", out)
-            counter += 1
+        cv2.imwrite(img_dir+"color_"+str(counter)+".jpg", cv_visual)
+        pickle.dump(cv_depth_meters, open(img_dir+"depth_"+str(counter),"wb"))
+        cv2.imwrite(img_dir+"combined_"+str(counter)+".jpg", out)
+        counter += 1
 
-            if visualize:
-                fig, axs = plt.subplots(1, 3)
-                axs[0].set_title("Depth (in meters)")
-                axs[0].imshow(cv_depth_meters)
-                axs[1].set_title("Color")
-                axs[1].imshow(cv_visual)
-                axs[2].set_title("Depth + Color")
-                axs[2].imshow(out)
-                plt.show()
+        if visualize:
+            fig, axs = plt.subplots(1, 3)
+            axs[0].set_title("Depth (in meters)")
+            axs[0].imshow(cv_depth_meters)
+            axs[1].set_title("Color")
+            axs[1].imshow(cv_visual)
+            axs[2].set_title("Depth + Color")
+            axs[2].imshow(out)
+            plt.show()
 
 
 

@@ -29,6 +29,16 @@ After collecting depth, color and pose data, we can generate a point cloud of th
 
 `python generate_pointcloud.py`
 
+## Move-to Location
+If you want to stand the robot up and move 2 meters within a given a location in the vision frame, you can check out 
+
+`python move_spot_to.py`
+
+## E-stop
+You'll need to run an e-stop if you want the robot to operate autonomously, I suggest looking at the example code from the Spot SDK:
+
+https://github.com/boston-dynamics/spot-sdk/tree/master/python/examples/estop
+
 ## TODO
 - get_depth_color_pose.py should have options for visual vs. map frame
 - arguments should be passed in at command line instead of hard coded

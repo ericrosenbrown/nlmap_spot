@@ -32,7 +32,7 @@ After collecting depth, color and pose data, we can generate a point cloud of th
 ## Move-to Location
 If you want to stand the robot up and move 2 meters within a given a location in the vision frame, you can check out 
 
-`python move_spot_to.py`
+`python move_spot_to.py [ROBOT_IP]`
 
 ## E-stop
 You'll need to run an e-stop if you want the robot to operate autonomously, I suggest looking at the example code from the Spot SDK:

@@ -19,9 +19,9 @@ from bosdyn.client import math_helpers
 
 class stupid:
     def __init__(self):
-        self.x = 0.3
-        self.y = 0.3
-        self.z = 0
+        self.x = 3.80
+        self.y = 2.743
+        self.z = 0.564
 
 def main(argv):
     parser = argparse.ArgumentParser()
@@ -55,7 +55,7 @@ def main(argv):
         # Walk to the object.
         vision_tform_dogtoy = stupid()
         walk_rt_vision, heading_rt_vision = compute_stand_location_and_yaw(
-            vision_tform_dogtoy, robot_state_client, distance_margin=1.0)
+            vision_tform_dogtoy, robot_state_client, distance_margin=2.0, robot=robot)
 
 
         move_cmd = RobotCommandBuilder.trajectory_command(
@@ -71,17 +71,22 @@ def main(argv):
             end_time)
 
         # Wait until the robot reports that it is at the goal.
-        block_for_trajectory_cmd(command_client, cmd_id, timeout_sec=5, verbose=True)
+        block_for_trajectory_cmd(command_client, cmd_id, timeout_sec=10.0, verbose=True)
 
 def compute_stand_location_and_yaw(vision_tform_target, robot_state_client,
-                                   distance_margin):
+                                   distance_margin,robot):
     # Compute drop-off location:
     #   Draw a line from Spot to the person
     #   Back up 2.0 meters on that line
+    '''
     vision_tform_robot = get_a_tform_b(
         robot_state_client.get_robot_state(
         ).kinematic_state.transforms_snapshot, VISION_FRAME_NAME,
         GRAV_ALIGNED_BODY_FRAME_NAME)
+    '''
+
+    frame_tree_snapshot = robot.get_frame_tree_snapshot()
+    vision_tform_robot = get_a_tform_b(frame_tree_snapshot,"vision","hand")
 
     # Compute vector between robot and person
     robot_rt_person_ewrt_vision = [

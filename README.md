@@ -60,6 +60,7 @@ If you'd like to see where each of the top k bounding boxes are in the pointclou
 - Hook in LLM to reproduce nlmap-saycan
 - Write utilies to collect data on Spot + execute navigation and manipulation actions with nlmap
 - Set up distributed processing so entire pipeline can happen in parallel and on robot platform
+- handle LTL specifications for navigation (globally, until, etc.) by using nlmap to genrate invalid/required locations, path planning accordingly.
 
 
 ## BUGS:

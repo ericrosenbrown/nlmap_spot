@@ -22,7 +22,7 @@ For example:
 
 `python get_depth_color_pose.py --manual_images True 138.16.161.12`
 
-You will be prompted to take a photo all the time. Move the robot where you want and then hit enter. The program will capture the depth and color image, convert the depth image to be in color image space, and then get the robot pose in the vision frame. All of this is then saved to a folder. If you'd prefer the robot to continuously take images at a fixed frequency, pass False to the manual_images flag.
+I suggest making sure the robot hand is open so that the depth camera is blocked less. You will be prompted to take a photo all the time. Move the robot where you want and then hit enter. The program will capture the depth and color image, convert the depth image to be in color image space, and then get the robot pose in the vision frame. All of this is then saved to a folder. If you'd prefer the robot to continuously take images at a fixed frequency, pass False to the manual_images flag. In my experience, collecting images while the robot is moving can make the images blurry, and more importantly the localization of the hand frame can be degretated which makes point cloud fusion worse. I suggest setting the robot walking speed to be very low and walk slowly, this normally works alright. If high precision is required, use manual mode and take images when the robot is still.
 
 ## Generate pointcloud from data
 After collecting depth, color and pose data, we can generate a point cloud of the scene, along with axes representing the pose of the robot's hand in the vision frame. In addition, we can save the pointcloud file in the same location we have the sensor data

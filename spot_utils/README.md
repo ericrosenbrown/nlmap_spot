@@ -40,6 +40,7 @@ You'll need to run an e-stop if you want the robot to operate autonomously, I su
 https://github.com/boston-dynamics/spot-sdk/tree/master/python/examples/estop
 
 ## TODO
+- make generate point cloud way more effecient by using transform with position and rotation data on pcd rather than add apply to each point individually
 - get_depth_color_pose.py should have options for visual vs. map frame
 - arguments should be passed in at command line instead of hard coded
 

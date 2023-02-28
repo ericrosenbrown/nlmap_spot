@@ -57,10 +57,8 @@ If you'd like to get some object proposals from a LLM, you can run
 - Make configuration file for language and other hyperparameters and load them in
 - decide on structure for how color, depth, and pose is stored
 - don't use center pixel of bounding box, instead use "center" of mask
+- only using CLIP scores right now for nlmap, also integrate in ViLD scores
 - Make semantic map as in NL-Map
-	- run classify_top_k on rgb images
-	- use bounding boxes to get estimated size of objects
-	- visualize object locations in map too!
 	- do multi-view semantic fusion
 - Hook in LLM to reproduce nlmap-saycan
 - Write utilies to collect data on Spot + execute navigation and manipulation actions with nlmap

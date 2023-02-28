@@ -45,6 +45,10 @@ If you'd like to see where each of the top k bounding boxes are in the pointclou
 
 `python pointcloud_classify_top_k.py`
 
+If you'd like to get some object proposals from a LLM, you can run
+
+`python saycan.py`
+
 ## TODO:
 - make data collection on spot have continuous mode (maybe even autonomous?)
 - clean out unneeded print statements

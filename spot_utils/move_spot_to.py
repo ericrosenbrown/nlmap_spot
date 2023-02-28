@@ -18,18 +18,14 @@ from bosdyn.client.robot_state import RobotStateClient
 from bosdyn.client import math_helpers
 
 class stupid:
-    def __init__(self):
-        self.x = 3.80
-        self.y = 2.743
-        self.z = 0.564
+    def __init__(self,x=3.80,y=2.743,z=0.564):
+        self.x = x
+        self.y = y
+        self.z = z
 
-def main(argv):
-    parser = argparse.ArgumentParser()
-    bosdyn.client.util.add_base_arguments(parser)
-    options = parser.parse_args(argv)
-
+def move_to(pose=None,hostname="138.16.161.12"):
     sdk = bosdyn.client.create_standard_sdk('NLMapSpot')
-    robot = sdk.create_robot(options.hostname)
+    robot = sdk.create_robot(hostname)
     bosdyn.client.util.authenticate(robot)
 
     # Time sync is necessary so that time-based filter requests can be converted
@@ -53,7 +49,11 @@ def main(argv):
 
         #walk_rt_vision = [-0.6707368427993169, -0.6613703096820227, 0.2523603994192693]
         # Walk to the object.
-        vision_tform_dogtoy = stupid()
+        if pose == None:
+            vision_tform_dogtoy = stupid()
+        else:
+            vision_tform_robo = stupid(*pose)
+
         walk_rt_vision, heading_rt_vision = compute_stand_location_and_yaw(
             vision_tform_dogtoy, robot_state_client, distance_margin=2.0, robot=robot)
 
@@ -177,5 +177,4 @@ def block_for_trajectory_cmd(command_client, cmd_id, timeout_sec=None, verbose=F
 
 
 if __name__ == '__main__':
-    if not main(sys.argv[1:]):
-        sys.exit(1)
+    move_to()

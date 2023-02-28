@@ -49,6 +49,12 @@ If you'd like to get some object proposals from a LLM, you can run
 
 `python saycan.py`
 
+This will do some in-context learning and propose a list of objects that may be relevant to the task specified.
+
+If you'd like to have the robot move to different objects based on the detectiosn, you can run
+
+`python nlmap.py`
+
 ## TODO:
 - make data collection on spot have continuous mode (maybe even autonomous?)
 - clean out unneeded print statements

@@ -52,6 +52,7 @@ If you'd like to get some object proposals from a LLM, you can run
 ## TODO:
 - make data collection on spot have continuous mode (maybe even autonomous?)
 - clean out unneeded print statements
+- axis aligned bounding boxes for pointcloud
 - Filter out low-score candidates
 - Make configuration file for language and other hyperparameters and load them in
 - decide on structure for how color, depth, and pose is stored

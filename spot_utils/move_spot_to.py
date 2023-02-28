@@ -23,7 +23,7 @@ class stupid:
         self.y = y
         self.z = z
 
-def move_to(pose=None,hostname="138.16.161.12"):
+def move_to(pose=None,hostname="138.16.161.12", end_time=30):
     sdk = bosdyn.client.create_standard_sdk('NLMapSpot')
     robot = sdk.create_robot(hostname)
     bosdyn.client.util.authenticate(robot)
@@ -49,13 +49,13 @@ def move_to(pose=None,hostname="138.16.161.12"):
 
         #walk_rt_vision = [-0.6707368427993169, -0.6613703096820227, 0.2523603994192693]
         # Walk to the object.
-        if pose == None:
-            vision_tform_dogtoy = stupid()
+        if type(pose) == type(None):
+            vision_tform_pose = stupid()
         else:
-            vision_tform_robo = stupid(*pose)
+            vision_tform_pose= stupid(*pose)
 
         walk_rt_vision, heading_rt_vision = compute_stand_location_and_yaw(
-            vision_tform_dogtoy, robot_state_client, distance_margin=2.0, robot=robot)
+            vision_tform_pose, robot_state_client, distance_margin=2.0, robot=robot)
 
 
         move_cmd = RobotCommandBuilder.trajectory_command(
@@ -65,7 +65,6 @@ def move_to(pose=None,hostname="138.16.161.12"):
             frame_name=VISION_FRAME_NAME,
             params=get_walking_params(0.5, 0.5))
 
-        end_time = 5.0
         cmd_id = command_client.robot_command(command=move_cmd,
             end_time_secs=time.time() +
             end_time)

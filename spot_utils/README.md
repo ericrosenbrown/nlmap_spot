@@ -44,6 +44,7 @@ https://github.com/boston-dynamics/spot-sdk/tree/master/python/examples/estop
 - get_depth_color_pose.py should have options for visual vs. map frame
 - arguments should be passed in at command line instead of hard coded
 - move_spot_to has temporary "stupid" class, and should have adjustable approach range, and also handle obstacles, and also connect to seed frame
+- timeout for move_spot_to should be considered more, also make navigation more advance (todo above)
 
 ## BUGS 
 - (?) I am using the hand frame for get_depth_color_pose.py but I should double check that this is aligned with hand color frame

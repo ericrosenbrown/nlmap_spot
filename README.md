@@ -71,7 +71,7 @@ If you'd like to have the robot move to different objects based on the detectios
 - Set up distributed processing so entire pipeline can happen in parallel and on robot platform
 - saycan.py should have in-context learning as a passed parameter, cleaned up to have better options, etc.
 - handle LTL specifications for navigation (globally, until, etc.) by using nlmap to genrate invalid/required locations, path planning accordingly.
-
+- extract_roi_vild in vild_utils only operates on image_paths (session.run takes it in), work on making it so I can pass image in directly?
 
 ## BUGS:
 - (?) Why do CLIP scores seem to always be slightly lower than ViLD, is it due to do normalizaton issues?

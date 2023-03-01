@@ -23,54 +23,40 @@ class stupid:
         self.y = y
         self.z = z
 
-def move_to(pose=None,hostname="138.16.161.12", end_time=30):
-    sdk = bosdyn.client.create_standard_sdk('NLMapSpot')
-    robot = sdk.create_robot(hostname)
-    bosdyn.client.util.authenticate(robot)
+def move_to(robot,robot_state_client,pose=None,hostname="138.16.161.12", end_time=30):
+    distance_margin = 1.0
+    robot.logger.info("Powering on robot... This may take a several seconds.")
+    robot.power_on(timeout_sec=20)
 
-    # Time sync is necessary so that time-based filter requests can be converted
-    robot.time_sync.wait_for_sync()
+    robot.logger.info("Commanding robot to stand...")
+    command_client = robot.ensure_client(RobotCommandClient.default_service_name)
+    blocking_stand(command_client, timeout_sec=10)
+    robot.logger.info("Robot standing.")
 
-    assert not robot.is_estopped(), "Robot is estopped. Please use an external E-Stop client, " \
-                                    "such as the estop SDK example, to configure E-Stop."
+    #walk_rt_vision = [-0.6707368427993169, -0.6613703096820227, 0.2523603994192693]
+    # Walk to the object.
+    if type(pose) == type(None):
+        vision_tform_pose = stupid()
+    else:
+        vision_tform_pose= stupid(*pose)
 
-    robot_state_client = robot.ensure_client(RobotStateClient.default_service_name)
-
-    lease_client = robot.ensure_client(bosdyn.client.lease.LeaseClient.default_service_name)
-    with bosdyn.client.lease.LeaseKeepAlive(lease_client, must_acquire=True, return_at_exit=True):
-
-        robot.logger.info("Powering on robot... This may take a several seconds.")
-        robot.power_on(timeout_sec=20)
-
-        robot.logger.info("Commanding robot to stand...")
-        command_client = robot.ensure_client(RobotCommandClient.default_service_name)
-        blocking_stand(command_client, timeout_sec=10)
-        robot.logger.info("Robot standing.")
-
-        #walk_rt_vision = [-0.6707368427993169, -0.6613703096820227, 0.2523603994192693]
-        # Walk to the object.
-        if type(pose) == type(None):
-            vision_tform_pose = stupid()
-        else:
-            vision_tform_pose= stupid(*pose)
-
-        walk_rt_vision, heading_rt_vision = compute_stand_location_and_yaw(
-            vision_tform_pose, robot_state_client, distance_margin=2.0, robot=robot)
+    walk_rt_vision, heading_rt_vision = compute_stand_location_and_yaw(
+        vision_tform_pose, robot_state_client, distance_margin=distance_margin, robot=robot)
 
 
-        move_cmd = RobotCommandBuilder.trajectory_command(
-            goal_x=walk_rt_vision[0],
-            goal_y=walk_rt_vision[1],
-            goal_heading=heading_rt_vision,
-            frame_name=VISION_FRAME_NAME,
-            params=get_walking_params(0.5, 0.5))
+    move_cmd = RobotCommandBuilder.trajectory_command(
+        goal_x=walk_rt_vision[0],
+        goal_y=walk_rt_vision[1],
+        goal_heading=heading_rt_vision,
+        frame_name=VISION_FRAME_NAME,
+        params=get_walking_params(0.5, 0.5))
 
-        cmd_id = command_client.robot_command(command=move_cmd,
-            end_time_secs=time.time() +
-            end_time)
+    cmd_id = command_client.robot_command(command=move_cmd,
+        end_time_secs=time.time() +
+        end_time)
 
-        # Wait until the robot reports that it is at the goal.
-        block_for_trajectory_cmd(command_client, cmd_id, timeout_sec=10.0, verbose=True)
+    # Wait until the robot reports that it is at the goal.
+    block_for_trajectory_cmd(command_client, cmd_id, timeout_sec=10.0, verbose=True)
 
 def compute_stand_location_and_yaw(vision_tform_target, robot_state_client,
                                    distance_margin,robot):
@@ -176,4 +162,18 @@ def block_for_trajectory_cmd(command_client, cmd_id, timeout_sec=None, verbose=F
 
 
 if __name__ == '__main__':
-    move_to()
+    sdk = bosdyn.client.create_standard_sdk('NLMapSpot')
+    robot = sdk.create_robot(hostname)
+    bosdyn.client.util.authenticate(robot)
+
+    # Time sync is necessary so that time-based filter requests can be converted
+    robot.time_sync.wait_for_sync()
+
+    assert not robot.is_estopped(), "Robot is estopped. Please use an external E-Stop client, " \
+                                    "such as the estop SDK example, to configure E-Stop."
+
+    robot_state_client = robot.ensure_client(RobotStateClient.default_service_name)
+
+    lease_client = robot.ensure_client(bosdyn.client.lease.LeaseClient.default_service_name)
+    with bosdyn.client.lease.LeaseKeepAlive(lease_client, must_acquire=True, return_at_exit=True):
+        move_to(robot,robot_state_client)

@@ -32,13 +32,13 @@ from bosdyn.client.manipulation_api_client import ManipulationApiClient
 #################################################################
 # Hyperparameters and general initialization
 cache_images = True #load image cache if available, make image cache when needed
-cache_text = False#same but for text
+cache_text = True#same but for text
 vis_boxes = False #show image with detected bounding boxes
 vis_details = False #show details for each bounding box
 headless = True #no visualization at all
 top_k = 5 #top k scores for models get stored
 img_dir_root_path = "./data/"
-img_dir_name = "spot-depth-color-pose-data7"
+img_dir_name = "spot-depth-color-pose-data8"
 img_dir_path = img_dir_root_path + img_dir_name
 cache_path = "./cache/"
 pose_data_fname = "pose_data.pkl"
@@ -100,6 +100,8 @@ lease_client = robot.ensure_client(bosdyn.client.lease.LeaseClient.default_servi
 image_client = robot.ensure_client(ImageClient.default_service_name)
 manipulation_api_client = robot.ensure_client(ManipulationApiClient.default_service_name)
 
+#We only use the hand color
+sources = ['hand_depth_in_hand_color_frame', 'hand_color_image']
 
 #################################################################
 # Loop through objects
@@ -165,17 +167,6 @@ with bosdyn.client.lease.LeaseKeepAlive(lease_client, must_acquire=True, return_
 			fig, axs = plt.subplots(1, 2)
 			move_to(robot,robot_state_client,pose=best_pose)
 
-			#We only use the hand color
-			sources = ['hand_depth_in_hand_color_frame', 'hand_color_image']
-
-			# Create robot object with an image client.
-			sdk = bosdyn.client.create_standard_sdk('image_depth_plus_visual')
-
-
-			robot = sdk.create_robot(hostname)
-			bosdyn.client.util.authenticate(robot)
-			image_client = robot.ensure_client(ImageClient.default_service_name)
-
 			# Capture and save images to disk
 			image_responses = image_client.get_image_from_sources(sources)
 
@@ -200,7 +191,8 @@ with bosdyn.client.lease.LeaseKeepAlive(lease_client, must_acquire=True, return_
 
 			axs[0].imshow(cv_visual)
 			axs[1].imshow(top_k_item_clip[1][2])
-			plt.show()
+			plt.savefig('./tmp/crops.png')
+			#plt.show()
 
 			arm_object_grasp(robot_state_client,manipulation_api_client,best_pixel,image_responses[1])
 

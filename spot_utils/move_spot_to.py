@@ -23,7 +23,7 @@ class stupid:
         self.y = y
         self.z = z
 
-def move_to(robot,robot_state_client,pose=None,distance_margin=1.0,hostname="138.16.161.12", end_time=30):
+def move_to(robot,robot_state_client,pose=None,distance_margin=1.25,hostname="138.16.161.12", end_time=30):
     robot.logger.info("Powering on robot... This may take a several seconds.")
     robot.power_on(timeout_sec=20)
 

@@ -33,7 +33,12 @@ def main(argv):
     if options.manual_images == "True":
         manual_images = True
     else:
+        already_took_photo = False
         manual_images = False
+        robot_is_moving = False
+        robot_take_pic = True
+        last_robot_position = [0,0,0]
+
 
     visualize = False #everytime we capture image, vis the results
     robot_pose = True #get camera frame in vision frame when picture taken
@@ -82,6 +87,25 @@ def main(argv):
             "rpy": [vision_tform_hand.rotation.to_roll(),vision_tform_hand.rotation.to_pitch(),vision_tform_hand.rotation.to_yaw()]}
             
             pickle.dump(img_to_pose_dir,open(img_dir+"pose_data.pkl","wb"))
+
+            robot_position = [vision_tform_hand.position.x,vision_tform_hand.position.y,vision_tform_hand.position.z]
+
+        if not manual_images:
+            if np.linalg.norm(np.array(robot_position) - np.array(last_robot_position)) > 0.2: #robot is moving around
+                print("Robot is moving, no photos!")
+                last_robot_position = robot_position
+                already_took_photo = False
+                continue
+            else:
+                last_robot_position = robot_position
+                if already_took_photo: #don't take a phot if you already have
+                    print("Robot still but already took photo")
+                    continue
+                else:
+                    print("Robot still: NEW PHOTO!")
+                    already_took_photo = True #going to take photo, don't next time
+
+
 
         # Image responses are in the same order as the requests.
         # Convert to opencv images.

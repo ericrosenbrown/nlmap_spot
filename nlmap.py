@@ -6,9 +6,9 @@ import math
 from queue import PriorityQueue
 from tqdm import tqdm
 import open3d as o3d
-from spot_utils.utils import pixel_to_vision_frame, pixel_to_vision_frame_depth_provided, arm_object_grasp
+from spot_utils.utils import pixel_to_vision_frame, pixel_to_vision_frame_depth_provided, arm_object_grasp, open_gripper
 from nlmap_utils import get_best_clip_vild_dirs
-from spot_utils.move_spot_to import move_to 
+from spot_utils.move_spot_to import move_to
 
 from bosdyn.client.image import ImageClient
 
@@ -38,7 +38,7 @@ vis_details = False #show details for each bounding box
 headless = True #no visualization at all
 top_k = 5 #top k scores for models get stored
 img_dir_root_path = "./data/"
-img_dir_name = "spot-depth-color-pose-data8"
+img_dir_name = "sick_cit"
 img_dir_path = img_dir_root_path + img_dir_name
 cache_path = "./cache/"
 pose_data_fname = "pose_data.pkl"
@@ -64,7 +64,7 @@ category_name_string = ';'.join(['flipflop', 'street sign', 'bracelet',
 #category_name_string = "Table; Chair; Sofa; Lamp; Rug; Television; Fireplace; Pillow; Blanket; Clock; Picture frame; Vase; Lampshade; Candlestick; Books; Magazines; DVD player; CD player; Record player; Video game console; Board game; Card game; Chess set; Backgammon set; Carpet; Drapes; Blinds; Shelving unit; Side table; Coffee table; Footstool; Armchair; Bean bag; Desk; Office chair; Computer; Printer; Scanner; Fax machine; Telephone; Cell phone; Rug; Trash can; Wastebasket; Vacuum cleaner; Broom; Dustpan; Mop; Bucket; Dust cloth; Cleaning supplies; Iron; Ironing board; Hair dryer; Curling iron; Toilet brush; Towels; Soap; Shampoo; Toothbrush; Toothpaste; Razor; Shaving cream; Deodorant; Hairbrush; Hair ties; Makeup; Nail polish; Perfume; Cologne; Laundry basket; Clothes hanger; Closet; Dresser; Bed; Mattress; Pillows; Sheets; Blanket; Comforter; Quilt; Bedspread; Nightstand; Alarm clock; Lamp; Lamp; Rug"
 #category_name_string = "Hairbrush; Lamp; Chair; Sofa; Books; Television" 
 #category_name_string = "Boxes; Books; Monitor; Lamp" 
-category_name_string = "Expo marker bottle; cup"#; Chair; Boxes; Door; Table; Picture; Something to sit on " 
+category_name_string =  "Advil; Vitamins; Soup; Tea; Cup; Chair; Robot; Trashcan" #; Chair; Boxes; Door; Table; Picture; Something to sit on " 
 
 #category_name_string = "food; chair; person; sofa; pillow; table; book"
 
@@ -99,6 +99,7 @@ robot_state_client = robot.ensure_client(RobotStateClient.default_service_name)
 lease_client = robot.ensure_client(bosdyn.client.lease.LeaseClient.default_service_name)
 image_client = robot.ensure_client(ImageClient.default_service_name)
 manipulation_api_client = robot.ensure_client(ManipulationApiClient.default_service_name)
+robot_command_client = robot.ensure_client(RobotCommandClient.default_service_name)
 
 #We only use the hand color
 sources = ['hand_depth_in_hand_color_frame', 'hand_color_image']
@@ -167,6 +168,8 @@ with bosdyn.client.lease.LeaseKeepAlive(lease_client, must_acquire=True, return_
 			fig, axs = plt.subplots(1, 2)
 			move_to(robot,robot_state_client,pose=best_pose)
 
+			open_gripper(robot_command_client)
+
 			# Capture and save images to disk
 			image_responses = image_client.get_image_from_sources(sources)
 
@@ -193,6 +196,8 @@ with bosdyn.client.lease.LeaseKeepAlive(lease_client, must_acquire=True, return_
 			axs[1].imshow(top_k_item_clip[1][2])
 			plt.savefig('./tmp/crops.png')
 			#plt.show()
+
+			input("Execute grasp")
 
 			arm_object_grasp(robot_state_client,manipulation_api_client,best_pixel,image_responses[1])
 

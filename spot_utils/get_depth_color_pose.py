@@ -26,6 +26,8 @@ def main(argv):
     parser = argparse.ArgumentParser()
     bosdyn.client.util.add_base_arguments(parser)
     parser.add_argument("--manual_images", help="Whether images are taken manually or continuously",default="True")
+    parser.add_argument("--path_dir", help="path to directory where data is saved",default="../data")
+    parser.add_argument("--dir_name", help="name of directory for where data is stored",default="default_data")
     options = parser.parse_args(argv)
 
     if options.manual_images == "True":
@@ -35,7 +37,7 @@ def main(argv):
 
     visualize = False #everytime we capture image, vis the results
     robot_pose = True #get camera frame in vision frame when picture taken
-    img_dir = "../data/spot-depth-color-pose-data5/"
+    img_dir = options.path_dir + "/" + options.dir_name + "/"
     pic_hz = 2 #if manual_images is false, the hz at which images are automatically taken
 
     if visualize:

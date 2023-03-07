@@ -16,13 +16,15 @@ for the spot rgb hand camera, the focal length for x and y may be 552.0291012161
 ## Collect depth + color images and robot poses
 You can teleoperate the spot using the controller, and then run the following program:
 
-`python get_depth_color_pose.py --manual_images [True/False] ROBOT_IP`
+`python get_depth_color_pose.py --manual_images [True/False] --path_dir [DIR_PATH] --dir_name [DIR_NAME] [ROBOT_IP]`
 
 For example:
 
-`python get_depth_color_pose.py --manual_images True 138.16.161.12`
+`python get_depth_color_pose.py --manual_images True --path_dir ../data --dir_name spot_data 138.16.161.12`
 
-I suggest making sure the robot hand is open so that the depth camera is blocked less. You will be prompted to take a photo all the time. Move the robot where you want and then hit enter. The program will capture the depth and color image, convert the depth image to be in color image space, and then get the robot pose in the vision frame. All of this is then saved to a folder. If you'd prefer the robot to continuously take images at a fixed frequency, pass False to the manual_images flag. In my experience, collecting images while the robot is moving can make the images blurry, and more importantly the localization of the hand frame can be degretated which makes point cloud fusion worse. I suggest setting the robot walking speed to be very low and walk slowly, this normally works alright. If high precision is required, use manual mode and take images when the robot is still.
+I suggest making sure the robot hand is open so that the depth camera is blocked less. You will be prompted to take a photo all the time. Move the robot where you want and then hit enter. The program will capture the depth and color image, convert the depth image to be in color image space, and then get the robot pose in the vision frame. All of this is then saved to a folder. If you'd prefer the robot to continuously take images at a fixed frequency, pass False to the manual_images flag. path_dir is the path to where the new data directory will be located, and dir_name is the name of the new directory for the data.
+
+In my experience, collecting images while the robot is moving can make the images blurry, and more importantly the localization of the hand frame can be degretated which makes point cloud fusion worse. I suggest setting the robot walking speed to be very low and walk slowly, this normally works alright. If high precision is required, use manual mode and take images when the robot is still.
 
 ## Generate pointcloud from data
 After collecting depth, color and pose data, we can generate a point cloud of the scene, along with axes representing the pose of the robot's hand in the vision frame. In addition, we can save the pointcloud file in the same location we have the sensor data

@@ -56,7 +56,7 @@ If you'd like to have the robot move to different objects based on the detectios
 `python nlmap.py`
 
 ## TODO:
-- make data collection on spot have continuous mode (maybe even autonomous?)
+- make data collection on spot autonomous?
 - clean out unneeded print statements
 - axis aligned bounding boxes for pointcloud
 - Filter out low-score candidates
@@ -67,7 +67,6 @@ If you'd like to have the robot move to different objects based on the detectios
 - Make semantic map as in NL-Map
 	- do multi-view semantic fusion
 - Hook in LLM to reproduce nlmap-saycan
-- Write utilies to collect data on Spot + execute navigation and manipulation actions with nlmap
 - Set up distributed processing so entire pipeline can happen in parallel and on robot platform
 - saycan.py should have in-context learning as a passed parameter, cleaned up to have better options, etc.
 - handle LTL specifications for navigation (globally, until, etc.) by using nlmap to genrate invalid/required locations, path planning accordingly.

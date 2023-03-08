@@ -10,6 +10,14 @@ from PIL import Image
 import clip
 import torch
 
+from spot_utils.utils import pixel_to_vision_frame, pixel_to_vision_frame_depth_provided, arm_object_grasp, open_gripper
+from spot_utils.generate_pointcloud import make_pointcloud
+from vild.vild_utils import visualize_boxes_and_labels_on_image_array, plot_mask
+import matplotlib.pyplot as plt
+from matplotlib import patches
+
+import open3d as o3d
+
 class NLMap():
 	def __init__(self,config_path="./configs/example.ini"):
 		###########################################################################################################
@@ -22,12 +30,6 @@ class NLMap():
 
 		### device setting
 		device = "cuda" if torch.cuda.is_available() else "cpu"
-
-		### Visualization
-		if self.config["viz"].getboolean("boxes"):
-			from vild.vild_utils import visualize_boxes_and_labels_on_image_array, plot_mask
-			import matplotlib.pyplot as plt
-			from matplotlib import patches
 
 		### Robot initializaton
 		if self.config["robot"].getboolean("use_robot"):
@@ -64,13 +66,12 @@ class NLMap():
 
 		### Pointcloud initialization
 		if self.config["pointcloud"].getboolean("use_pointcloud"):
-			import open3d as o3d
-
 			pointcloud_path = f"{self.data_dir_path}/{self.config['file_names']['pointcloud']}"
 			if os.path.isfile(pointcloud_path):
 				self.pcd = o3d.io.read_point_cloud(pointcloud_path)
 			else:
-				raise Exception(f"use_pointcloud is true but {pointcloud_path} does not exist. Implement GENERATE POINTCLOUD")
+				#raise Exception(f"use_pointcloud is true but {pointcloud_path} does not exist. Implement GENERATE POINTCLOUD")
+				self.pcd = make_pointcloud(data_path=f"{self.data_dir_path}/",pose_data_fname=self.config["file_names"]["pose"], pointcloud_fname=self.config["file_names"]["pointcloud"])
 
 			#o3d.visualization.draw_geometries([self.pcd])
 
@@ -96,7 +97,7 @@ class NLMap():
 			#load CLIP model
 			self.clip_model, self.clip_preprocess = clip.load(self.config["clip"]["model"])
 
-			self.text_features = build_text_embedding(self.categories,self.clip_model,self.clip_preprocess)
+			self.text_features = build_text_embedding(self.categories,self.clip_model,self.clip_preprocess,prompt_engineering=self.config["text"].getboolean("prompt_engineering"))
 
 			if self.config["cache"].getboolean("text"): #save the text cache
 				pickle.dump(self.text_features,open(f"{self.cache_path}_text","wb"))
@@ -105,6 +106,9 @@ class NLMap():
 		self.image_names = os.listdir(self.data_dir_path)
 		self.image_names = [image_name for image_name in self.image_names if "color" in image_name]
 
+		###########################################################################################################
+		######### Image embeddings
+
 		### Load cached image embeddings if they exist and are to be used, or make them otherwise
 		self.cache_image_exists = os.path.isfile(f"{self.config['paths']['cache_dir']}/{self.config['dir_names']['data']}_images_vild")
 
@@ -112,8 +116,8 @@ class NLMap():
 			self.image2vectorvild_dir = pickle.load(open(f"{self.cache_path}_images_vild","rb"))
 			self.image2vectorclip_dir = pickle.load(open(f"{self.cache_path}_images_clip","rb"))
 
-			self.topk_vild= pickle.load(open(f"{self.cache_path}_topk_vild","rb"))
-			self.topk_clip = pickle.load(open(f"{self.cache_path}_topk_clip","rb"))
+			self.topk_vild_dir= pickle.load(open(f"{self.cache_path}_topk_vild","rb"))
+			self.topk_clip_dir = pickle.load(open(f"{self.cache_path}_topk_clip","rb"))
 		else: #make image embeddings (either because you're not using cache, or because you don't have cache)
 			self.priority_queue_clip_dir = defaultdict(PriorityQueue) #keys will be category names. The priority will be negative score (since lowest gets dequeue) and items be image, anno_idx, and crop
 			self.priority_queue_vild_dir = defaultdict(PriorityQueue) #keys will be category names. The priority will be negative score (since lowest gets dequeue) and items be image, anno_idx, and crop
@@ -285,17 +289,83 @@ class NLMap():
 				pickle.dump(self.image2vectorclip_dir,open(f"{self.cache_path}_images_clip","wb"))
 
 				### For priority queue, just get the top k results since PriorityQueue is not picklable
-				topk_vild = []
-				topk_clip = []
-				for k in range(self.config["fusion"].getint("top_k")):
-					top_k_item_vild = self.priority_queue_vild_dir[category_name].get()
-					top_k_item_clip = self.priority_queue_clip_dir[category_name].get()
+				self.topk_vild_dir = {}
+				self.topk_clip_dir = {}
+				for category_name in self.category_names:
+					topk_vild_list = []
+					topk_clip_list = []
+					for k in range(self.config["fusion"].getint("top_k")):
+						top_k_item_vild = self.priority_queue_vild_dir[category_name].get()
+						top_k_item_clip = self.priority_queue_clip_dir[category_name].get()
 
-					topk_vild.append(top_k_item_vild)
-					topk_clip.append(top_k_item_clip)
+						topk_vild_list.append(top_k_item_vild)
+						topk_clip_list.append(top_k_item_clip)
 
-				pickle.dump(topk_vild,open(f"{self.cache_path}_topk_vild","wb"))
-				pickle.dump(topk_clip,open(f"{self.cache_path}_topk_clip","wb"))
+					self.topk_vild_dir[category_name] = topk_vild_list
+					self.topk_clip_dir[category_name] = topk_clip_list
+
+
+
+				pickle.dump(self.topk_vild_dir,open(f"{self.cache_path}_topk_vild","wb"))
+				pickle.dump(self.topk_clip_dir,open(f"{self.cache_path}_topk_clip","wb"))
+
+	def viz_top_k(self):
+		for category_name in self.category_names:
+			print(f"category: {category_name}")
+			top_axes = []
+
+			fig, axs = plt.subplots(2, self.config["fusion"].getint("top_k"))
+			plt.suptitle(f"Query: {category_name}")
+
+			best_pose = None
+			for k in range(self.config["fusion"].getint("top_k")):
+				top_k_item_vild = self.topk_vild_dir[category_name][k]
+				top_k_item_clip = self.topk_clip_dir[category_name][k]
+
+				axs[0, k].set_title(f"ViLD score {top_k_item_vild[0]*-1:.3f}")
+				axs[0, k].imshow(top_k_item_vild[1][2])
+
+				axs[1, k].set_title(f"CLIP score {top_k_item_clip[0]*-1:.3f}")
+				axs[1, k].imshow(top_k_item_clip[1][2])
+
+				#### Point cloud stuff
+				#### Just show CLIP for now!
+				file_num = int(top_k_item_clip[1][0].split("_")[1].split(".")[0])
+				depth_img = pickle.load(open(f"{self.data_dir_path}/depth_{str(file_num)}","rb"))
+				rotation_matrix = self.pose_dir[file_num]['rotation_matrix']
+				position = self.pose_dir[file_num]['position']
+
+				ymin, xmin, ymax, xmax = top_k_item_clip[1][3:]
+
+				center_y = int((ymin + ymax)/2.0)
+				center_x = int((xmin + xmax)/2.0)
+
+				transformed_point,bad_point = pixel_to_vision_frame(center_y,center_x,depth_img,rotation_matrix,position)
+				side_pointx,_ = pixel_to_vision_frame_depth_provided(center_y,xmax,depth_img[center_y,center_x],rotation_matrix,position)
+				side_pointy,_ = pixel_to_vision_frame_depth_provided(ymax,center_x,depth_img[center_y,center_x],rotation_matrix,position)
+
+				#TODO: what should bb_size be for z? Right now, just making it same as x. Also needs to be axis aligned
+				bb_sizex = np.linalg.norm(transformed_point-side_pointx)[0]*2
+				bb_sizey = np.linalg.norm(transformed_point-side_pointy)[0]*2
+				
+
+
+				if bad_point:
+					print(f"0 depth at the point for item {k} next bounding box")
+				else:
+					if type(best_pose) == type(None):
+						best_pose = transformed_point
+					print(f"item {k} good inside {top_k_item_clip[1][0]}")
+					print(transformed_point)
+					bb = o3d.geometry.OrientedBoundingBox(center=np.array(transformed_point),R=np.array([[1,0,0],[0,1,0],[0,0,1]]), extent=np.array([bb_sizex,bb_sizex,bb_sizey]))
+					bb.color = [1,0,0]
+					axis_center = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.5,origin=transformed_point)
+					top_axes.append(bb)
+					top_axes.append(axis_center)
+
+
+			plt.show()
+			#o3d.visualization.draw_geometries([self.pcd]+top_axes)
 
 
 if __name__ == "__main__":
@@ -305,3 +375,5 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	nlmap = NLMap(args.config_path)
+
+	nlmap.viz_top_k()

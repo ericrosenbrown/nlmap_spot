@@ -323,7 +323,7 @@ class NLMap():
 	def viz_pointcloud(self):
 		o3d.visualization.draw_geometries([self.pcd])
 
-	def viz_top_k(self):
+	def viz_top_k(self,viz_2d=True,viz_pointcloud=True):
 		for category_name in self.category_names:
 			print(f"category: {category_name}")
 			top_axes = []
@@ -377,9 +377,10 @@ class NLMap():
 					top_axes.append(bb)
 					top_axes.append(axis_center)
 
-
-			plt.show()
-			#o3d.visualization.draw_geometries([self.pcd]+top_axes)
+			if viz_2d:
+				plt.show()
+			if viz_pointcloud:
+				o3d.visualization.draw_geometries([self.pcd]+top_axes)
 
 
 if __name__ == "__main__":
@@ -392,4 +393,4 @@ if __name__ == "__main__":
 
 	### Example things to do 
 	#nlmap.viz_pointcloud()
-	nlmap.viz_top_k()
+	nlmap.viz_top_k(viz_2d=True,viz_pointcloud=True)

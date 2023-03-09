@@ -56,14 +56,14 @@ If you'd like to have the robot move to different objects based on the detectios
 `python nlmap.py`
 
 ## TODO:
-- make option for saving viz_boxes outputs in nlmap.py during initialization, so that you can see them after the fact, etc.
+- Write explanation for config file
 - Right now, I only save top crops of vild according to text score similarity for clip, which means when i change text I may need to change vision cache. Make this more effecient by saving all the results of vild, computing clip for all of them, and for new text get different anno idxs.
-- I can't show back-to-back open3d visualizations in viz_top_k because of weird window crashing problem? Either figure out why this is happening or save results of viz_top_k in a folder to see results in parallel
-- Note that some of the configs in .ini are just for initialization (mainly visualization)
+- I can't show back-to-back open3d visualizations in viz_top_k because of weird window crashing problem?
 - move pointcloud utils around? is it kind of a weird place (outside of nlamp.py?)
-- make it so i can either viz or not viz when I run generate_pointcloud.
-- add function to just visualize pointcloud
+- make it so i can either viz or not viz when I run generate_pointcloud (right now it always visualizes the point cloud + poses on generation)
+- add poses to function that visualizes pointcloud
 - check out context prompt is affecting results 
+- save fig results for top_k 
 
 
 - make data collection on spot autonomous?

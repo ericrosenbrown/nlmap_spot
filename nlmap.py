@@ -23,6 +23,8 @@ class NLMap():
 		###########################################################################################################
 		######### Initialization
 
+		if not os.path.isfile(config_path):
+			raise Exception(f"config_path {config_path} has no config file")
 		### Extract config file 
 		self.config = configparser.ConfigParser()
 		self.config.sections()

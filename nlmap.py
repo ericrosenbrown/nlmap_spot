@@ -55,6 +55,9 @@ class NLMap():
 
 		### Values set based on config parameters
 		self.data_dir_path = f"{self.config['paths']['data_dir_root']}/{self.config['dir_names']['data']}"
+		self.figs_dir_path = f"{self.config['paths']['figs_dir']}/{self.config['dir_names']['data']}"
+		if ((self.config["viz"].getboolean("save_whole_boxes") or self.config["viz"].getboolean("save_anno_boxes")) and not os.path.isdir(self.figs_dir_path)):
+			os.mkdir(self.figs_dir_path)
 
 		### Load pose data
 		if self.config["pose"].getboolean("use_pose"):
@@ -72,8 +75,6 @@ class NLMap():
 			else:
 				#raise Exception(f"use_pointcloud is true but {pointcloud_path} does not exist. Implement GENERATE POINTCLOUD")
 				self.pcd = make_pointcloud(data_path=f"{self.data_dir_path}/",pose_data_fname=self.config["file_names"]["pose"], pointcloud_fname=self.config["file_names"]["pointcloud"])
-
-			#o3d.visualization.draw_geometries([self.pcd])
 
 		### Text initialization
 		self.category_names = [x.strip() for x in self.config["text"]["category_name_string"].split(';')]
@@ -161,9 +162,10 @@ class NLMap():
 
 				overall_fig_size = [float(x) for x in self.config["viz"]["overall_fig_size"].split(",")]
 
-				if self.config["viz"].getboolean("boxes"):
+				if self.config["viz"].getboolean("boxes") or self.config["viz"].getboolean("save_whole_boxes"):
 					if len(indices) == 0:
-						display_image(np.array(image), size=overall_fig_size)
+						if self.config["viz"].getboolean("boxes"):
+							display_image(np.array(image), size=overall_fig_size)
 						print('ViLD does not detect anything belong to the given category')
 
 					else:
@@ -185,7 +187,11 @@ class NLMap():
 					plt.imshow(image_with_detections)
 					plt.axis('off')
 					plt.title('Detected objects and RPN scores')
-					plt.show()
+					if self.config["viz"].getboolean("save_whole_boxes"):
+						plt.savefig(f"{self.figs_dir_path}/{image_name}_whole.jpg", bbox_inches='tight')
+					if self.config["viz"].getboolean("boxes"):
+						plt.show()
+					plt.close()
 
 				raw_image = np.array(image)
 				n_boxes = rescaled_detection_boxes.shape[0]
@@ -238,7 +244,7 @@ class NLMap():
 					fig_size_w = 35
 					fig_size_h = min(max(5, int(len(self.category_names) / 2.5) ), 10)
 
-					if self.config["viz"].getboolean("boxes"):
+					if self.config["viz"].getboolean("boxes") or self.config["viz"].getboolean("save_anno_boxes"):
 						img_w_mask = plot_mask(self.config["viz"]["mask_color"], self.config["viz"].getfloat("alpha"), raw_image, segmentations[anno_idx])
 						crop_w_mask = img_w_mask[y1:y2, x1:x2, :]
 
@@ -281,7 +287,12 @@ class NLMap():
 						axs[3].set_yticks(range(len(self.category_names)))
 						axs[3].set_yticklabels(self.category_names, fontdict={
 						    'fontsize': fontsize})
-						plt.show()
+
+						if self.config["viz"].getboolean("save_anno_boxes"):
+							plt.savefig(f"{self.figs_dir_path}/{image_name}_anno_{anno_idx}.jpg", bbox_inches='tight')
+						if self.config["viz"].getboolean("boxes"):
+							plt.show()
+						plt.close()
 
 
 			if self.config["cache"].getboolean("images"):
@@ -308,6 +319,9 @@ class NLMap():
 
 				pickle.dump(self.topk_vild_dir,open(f"{self.cache_path}_topk_vild","wb"))
 				pickle.dump(self.topk_clip_dir,open(f"{self.cache_path}_topk_clip","wb"))
+
+	def viz_pointcloud(self):
+		o3d.visualization.draw_geometries([self.pcd])
 
 	def viz_top_k(self):
 		for category_name in self.category_names:
@@ -376,4 +390,6 @@ if __name__ == "__main__":
 
 	nlmap = NLMap(args.config_path)
 
+	### Example things to do 
+	#nlmap.viz_pointcloud()
 	nlmap.viz_top_k()

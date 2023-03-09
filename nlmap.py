@@ -330,19 +330,21 @@ class NLMap():
 			print(f"category: {category_name}")
 			top_axes = []
 
-			fig, axs = plt.subplots(2, self.config["fusion"].getint("top_k"))
-			plt.suptitle(f"Query: {category_name}")
+			if viz_2d:
+				fig, axs = plt.subplots(2, self.config["fusion"].getint("top_k"))
+				plt.suptitle(f"Query: {category_name}")
 
-			best_pose = None
 			for k in range(self.config["fusion"].getint("top_k")):
 				top_k_item_vild = self.topk_vild_dir[category_name][k]
 				top_k_item_clip = self.topk_clip_dir[category_name][k]
 
-				axs[0, k].set_title(f"ViLD score {top_k_item_vild[0]*-1:.3f}")
-				axs[0, k].imshow(top_k_item_vild[1][2])
+				if viz_2d:
 
-				axs[1, k].set_title(f"CLIP score {top_k_item_clip[0]*-1:.3f}")
-				axs[1, k].imshow(top_k_item_clip[1][2])
+					axs[0, k].set_title(f"ViLD score {top_k_item_vild[0]*-1:.3f}")
+					axs[0, k].imshow(top_k_item_vild[1][2])
+
+					axs[1, k].set_title(f"CLIP score {top_k_item_clip[0]*-1:.3f}")
+					axs[1, k].imshow(top_k_item_clip[1][2])
 
 				#### Point cloud stuff
 				#### Just show CLIP for now!
@@ -369,8 +371,6 @@ class NLMap():
 				if bad_point:
 					print(f"0 depth at the point for item {k} next bounding box")
 				else:
-					if type(best_pose) == type(None):
-						best_pose = transformed_point
 					print(f"item {k} good inside {top_k_item_clip[1][0]}")
 					print(transformed_point)
 					bb = o3d.geometry.OrientedBoundingBox(center=np.array(transformed_point),R=np.array([[1,0,0],[0,1,0],[0,0,1]]), extent=np.array([bb_sizex,bb_sizex,bb_sizey]))
@@ -384,6 +384,79 @@ class NLMap():
 			if viz_pointcloud:
 				o3d.visualization.draw_geometries([self.pcd]+top_axes)
 
+	def go_to_and_pick_top_k(self):
+		with bosdyn.client.lease.LeaseKeepAlive(self.lease_client, must_acquire=True, return_at_exit=True):
+			for category_name in self.category_names:
+				best_pose = None
+				for k in range(self.config["fusion"].getint("top_k")):
+					top_k_item_vild = self.topk_vild_dir[category_name][k]
+					top_k_item_clip = self.topk_clip_dir[category_name][k]
+
+					#### Point cloud stuff
+					#### Just show CLIP for now!
+					file_num = int(top_k_item_clip[1][0].split("_")[1].split(".")[0])
+					depth_img = pickle.load(open(f"{self.data_dir_path}/depth_{str(file_num)}","rb"))
+					rotation_matrix = self.pose_dir[file_num]['rotation_matrix']
+					position = self.pose_dir[file_num]['position']
+
+					ymin, xmin, ymax, xmax = top_k_item_clip[1][3:]
+
+					center_y = int((ymin + ymax)/2.0)
+					center_x = int((xmin + xmax)/2.0)
+
+					transformed_point,bad_point = pixel_to_vision_frame(center_y,center_x,depth_img,rotation_matrix,position)
+					side_pointx,_ = pixel_to_vision_frame_depth_provided(center_y,xmax,depth_img[center_y,center_x],rotation_matrix,position)
+					side_pointy,_ = pixel_to_vision_frame_depth_provided(ymax,center_x,depth_img[center_y,center_x],rotation_mbest_atrix,position)
+
+					#TODO: what should bb_size be for z? Right now, just making it same as x. Also needs to be axis aligned
+					bb_sizex = np.linalg.norm(transformed_point-side_pointx)[0]*2
+					bb_sizey = np.linalg.norm(transformed_point-side_pointy)[0]*2
+					
+
+					if not bad_point:
+						if type(best_pose) == type(None):
+							best_pose = transformed_point
+
+							input(f"Go to {category_name} at location {best_pose} (hit enter)")
+
+							move_to(robot,robot_state_client,pose=best_pose)
+
+							open_gripper(robot_command_client)
+
+							# Capture and save images to disk
+							image_responses = image_client.get_image_from_sources(sources)
+
+							cv_visual = cv2.imdecode(np.frombuffer(image_responses[1].shot.image.data, dtype=np.uint8), -1)
+
+							cv2.imwrite("./tmp/color_curview_.jpg", cv_visual)
+
+							priority_queue_vild_dir_cur, priority_queue_clip_dir_cur = get_best_clip_vild_dirs(["color_curview_.jpg"],"./tmp",cache_images=False,cache_text=False,cache_path=cache_path,img_dir_name="",category_names=[category_name],headless=headless)
+
+							#TODO: For now, just get top region and pick
+							top_k_item_vild = priority_queue_vild_dir_cur[category_name].get()
+							top_k_item_clip = priority_queue_clip_dir_cur[category_name].get()
+
+							ymin, xmin, ymax, xmax = top_k_item_clip[1][3:]
+
+							center_y = int((ymin + ymax)/2.0)
+							center_x = int((xmin + xmax)/2.0)
+
+							best_pixel = (center_x, center_y)
+
+							print(best_pixel)
+
+							axs[0].imshow(cv_visual)
+							axs[1].imshow(top_k_item_clip[1][2])
+							plt.savefig('./tmp/crops.png')
+							#plt.show()
+
+							input("Execute grasp?")
+
+							arm_object_grasp(robot_state_client,manipulation_api_client,best_pixel,image_responses[1])
+
+							break #move onto next category
+
+
 
 if __name__ == "__main__":
 	### Parse arguments from command line
@@ -395,4 +468,4 @@ if __name__ == "__main__":
 
 	### Example things to do 
 	#nlmap.viz_pointcloud()
-	nlmap.viz_top_k(viz_2d=True,viz_pointcloud=True)
+	nlmap.viz_top_k(viz_2d=False,viz_pointcloud=True)

@@ -64,6 +64,8 @@ If you'd like to have the robot move to different objects based on the detectios
 - add poses to function that visualizes pointcloud
 - check out context prompt is affecting results 
 - save fig results for top_k 
+- get_best_clip_vild_dirs is hackily used in go_to (since new images need to be processed)
+- Move lease outisde of go_to_and_pick_top_k so that the robot can always move around 
 
 
 - make data collection on spot autonomous?

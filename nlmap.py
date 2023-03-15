@@ -10,13 +10,35 @@ from PIL import Image
 import clip
 import torch
 
+from nlmap_utils import get_best_clip_vild_dirs
 from spot_utils.utils import pixel_to_vision_frame, pixel_to_vision_frame_depth_provided, arm_object_grasp, open_gripper
 from spot_utils.generate_pointcloud import make_pointcloud
 from vild.vild_utils import visualize_boxes_and_labels_on_image_array, plot_mask
 import matplotlib.pyplot as plt
 from matplotlib import patches
 
+import cv2
+
 import open3d as o3d
+
+from bosdyn.client.image import ImageClient
+
+import bosdyn.api.gripper_command_pb2
+import bosdyn.client
+import bosdyn.client.lease
+import bosdyn.client.util
+
+from bosdyn.api import geometry_pb2
+from bosdyn.api import basic_command_pb2
+
+from bosdyn.client.frame_helpers import VISION_FRAME_NAME, GRAV_ALIGNED_BODY_FRAME_NAME, get_a_tform_b
+from bosdyn.client.robot_command import (RobotCommandBuilder, RobotCommandClient,
+                                        block_until_arm_arrives, blocking_stand)
+from bosdyn.client.robot_state import RobotStateClient
+from bosdyn.client import math_helpers
+from bosdyn.client.manipulation_api_client import ManipulationApiClient
+
+from spot_utils.move_spot_to import move_to
 
 class NLMap():
 	def __init__(self,config_path="./configs/example.ini"):
@@ -33,10 +55,14 @@ class NLMap():
 		### device setting
 		device = "cuda" if torch.cuda.is_available() else "cpu"
 
+		### CLIP models set to none by default
+		self.clip_model = None
+		self.clip_preprocess = None
+
 		### Robot initializaton
 		if self.config["robot"].getboolean("use_robot"):
 			self.sdk = bosdyn.client.create_standard_sdk('NLMapSpot')
-			self.robot = sdk.create_robot(self.config["robot"]["hostname"])
+			self.robot = self.sdk.create_robot(self.config["robot"]["hostname"])
 			bosdyn.client.util.authenticate(self.robot)
 
 			# Time sync is necessary so that time-based filter requests can be converted
@@ -45,7 +71,7 @@ class NLMap():
 			assert not self.robot.is_estopped(), "Robot is estopped. Please use an external E-Stop client, " \
 			                                "such as the estop SDK example, to configure E-Stop."
 
-			robot_state_client = self.robot.ensure_client(RobotStateClient.default_service_name)
+			self.robot_state_client = self.robot.ensure_client(RobotStateClient.default_service_name)
 
 			self.lease_client = self.robot.ensure_client(bosdyn.client.lease.LeaseClient.default_service_name)
 			self.image_client = self.robot.ensure_client(ImageClient.default_service_name)
@@ -384,77 +410,79 @@ class NLMap():
 			if viz_pointcloud:
 				o3d.visualization.draw_geometries([self.pcd]+top_axes)
 
-	def go_to_and_pick_top_k(self):
+	def go_to_and_pick_top_k(self, category_name):
+		assert self.config["robot"].getboolean("use_robot")
 		with bosdyn.client.lease.LeaseKeepAlive(self.lease_client, must_acquire=True, return_at_exit=True):
-			for category_name in self.category_names:
-				best_pose = None
-				for k in range(self.config["fusion"].getint("top_k")):
-					top_k_item_vild = self.topk_vild_dir[category_name][k]
-					top_k_item_clip = self.topk_clip_dir[category_name][k]
+			best_pose = None
+			for k in range(self.config["fusion"].getint("top_k")):
+				top_k_item_vild = self.topk_vild_dir[category_name][k]
+				top_k_item_clip = self.topk_clip_dir[category_name][k]
 
-					#### Point cloud stuff
-					#### Just show CLIP for now!
-					file_num = int(top_k_item_clip[1][0].split("_")[1].split(".")[0])
-					depth_img = pickle.load(open(f"{self.data_dir_path}/depth_{str(file_num)}","rb"))
-					rotation_matrix = self.pose_dir[file_num]['rotation_matrix']
-					position = self.pose_dir[file_num]['position']
+				#### Point cloud stuff
+				#### Just show CLIP for now!
+				file_num = int(top_k_item_clip[1][0].split("_")[1].split(".")[0])
+				depth_img = pickle.load(open(f"{self.data_dir_path}/depth_{str(file_num)}","rb"))
+				rotation_matrix = self.pose_dir[file_num]['rotation_matrix']
+				position = self.pose_dir[file_num]['position']
 
-					ymin, xmin, ymax, xmax = top_k_item_clip[1][3:]
+				ymin, xmin, ymax, xmax = top_k_item_clip[1][3:]
 
-					center_y = int((ymin + ymax)/2.0)
-					center_x = int((xmin + xmax)/2.0)
+				center_y = int((ymin + ymax)/2.0)
+				center_x = int((xmin + xmax)/2.0)
 
-					transformed_point,bad_point = pixel_to_vision_frame(center_y,center_x,depth_img,rotation_matrix,position)
-					side_pointx,_ = pixel_to_vision_frame_depth_provided(center_y,xmax,depth_img[center_y,center_x],rotation_matrix,position)
-					side_pointy,_ = pixel_to_vision_frame_depth_provided(ymax,center_x,depth_img[center_y,center_x],rotation_mbest_atrix,position)
+				transformed_point,bad_point = pixel_to_vision_frame(center_y,center_x,depth_img,rotation_matrix,position)
+				side_pointx,_ = pixel_to_vision_frame_depth_provided(center_y,xmax,depth_img[center_y,center_x],rotation_matrix,position)
+				side_pointy,_ = pixel_to_vision_frame_depth_provided(ymax,center_x,depth_img[center_y,center_x],rotation_matrix,position)
 
-					#TODO: what should bb_size be for z? Right now, just making it same as x. Also needs to be axis aligned
-					bb_sizex = np.linalg.norm(transformed_point-side_pointx)[0]*2
-					bb_sizey = np.linalg.norm(transformed_point-side_pointy)[0]*2
-					
+				#TODO: what should bb_size be for z? Right now, just making it same as x. Also needs to be axis aligned
+				bb_sizex = np.linalg.norm(transformed_point-side_pointx)[0]*2
+				bb_sizey = np.linalg.norm(transformed_point-side_pointy)[0]*2
+				
 
-					if not bad_point:
-						if type(best_pose) == type(None):
-							best_pose = transformed_point
+				if not bad_point:
+					if type(best_pose) == type(None):
+						best_pose = transformed_point
 
-							input(f"Go to {category_name} at location {best_pose} (hit enter)")
+						input(f"Go to {category_name} at location {best_pose} (hit enter)")
 
-							move_to(robot,robot_state_client,pose=best_pose)
+						move_to(self.robot,self.robot_state_client,pose=best_pose)
 
-							open_gripper(robot_command_client)
+						open_gripper(self.robot_command_client)
 
-							# Capture and save images to disk
-							image_responses = image_client.get_image_from_sources(sources)
+						# Capture and save images to disk
+						image_responses = self.image_client.get_image_from_sources(self.sources)
 
-							cv_visual = cv2.imdecode(np.frombuffer(image_responses[1].shot.image.data, dtype=np.uint8), -1)
+						cv_visual = cv2.imdecode(np.frombuffer(image_responses[1].shot.image.data, dtype=np.uint8), -1)
 
-							cv2.imwrite("./tmp/color_curview_.jpg", cv_visual)
+						cv2.imwrite("./tmp/color_curview_.jpg", cv_visual)
 
-							priority_queue_vild_dir_cur, priority_queue_clip_dir_cur = get_best_clip_vild_dirs(["color_curview_.jpg"],"./tmp",cache_images=False,cache_text=False,cache_path=cache_path,img_dir_name="",category_names=[category_name],headless=headless)
+						if self.clip_model == None: #Need to load in CLIP model to run on local image
+							self.clip_model, self.clip_preprocess = clip.load(self.config["clip"]["model"])
+						priority_queue_vild_dir_cur, priority_queue_clip_dir_cur = get_best_clip_vild_dirs(self.clip_model,self.clip_preprocess,["color_curview_.jpg"],"./tmp",cache_images=False,cache_text=False,cache_path=self.cache_path,img_dir_name="",category_names=[category_name],headless=True)
 
-							#TODO: For now, just get top region and pick
-							top_k_item_vild = priority_queue_vild_dir_cur[category_name].get()
-							top_k_item_clip = priority_queue_clip_dir_cur[category_name].get()
+						#TODO: For now, just get top region and pick
+						top_k_item_vild = priority_queue_vild_dir_cur[category_name].get()
+						top_k_item_clip = priority_queue_clip_dir_cur[category_name].get()
 
-							ymin, xmin, ymax, xmax = top_k_item_clip[1][3:]
+						ymin, xmin, ymax, xmax = top_k_item_clip[1][3:]
 
-							center_y = int((ymin + ymax)/2.0)
-							center_x = int((xmin + xmax)/2.0)
+						center_y = int((ymin + ymax)/2.0)
+						center_x = int((xmin + xmax)/2.0)
 
-							best_pixel = (center_x, center_y)
+						best_pixel = (center_x, center_y)
 
-							print(best_pixel)
+						print(best_pixel)
+						fig, axs = plt.subplots(1, 2)
+						axs[0].imshow(cv_visual)
+						axs[1].imshow(top_k_item_clip[1][2])
+						plt.savefig('./tmp/crops.png')
+						#plt.show()
 
-							axs[0].imshow(cv_visual)
-							axs[1].imshow(top_k_item_clip[1][2])
-							plt.savefig('./tmp/crops.png')
-							#plt.show()
+						input("Execute grasp?")
 
-							input("Execute grasp?")
+						arm_object_grasp(self.robot_state_client,self.manipulation_api_client,best_pixel,image_responses[1])
 
-							arm_object_grasp(robot_state_client,manipulation_api_client,best_pixel,image_responses[1])
-
-							break #move onto next category
+						break #move onto next category
 
 
 
@@ -468,4 +496,5 @@ if __name__ == "__main__":
 
 	### Example things to do 
 	#nlmap.viz_pointcloud()
-	nlmap.viz_top_k(viz_2d=False,viz_pointcloud=True)
+	#nlmap.viz_top_k(viz_2d=True,viz_pointcloud=False)
+	nlmap.go_to_and_pick_top_k("Cup")

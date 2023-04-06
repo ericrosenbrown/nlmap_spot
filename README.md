@@ -21,8 +21,7 @@ TODO: explain flags (caching)
 TODO: 
 
 ## Examples
-Go to this google link drive and download some example images from a Spot walking around a room
-spot-images examples: https://drive.google.com/file/d/1TOj7Chu089YmJS_gy_A0AFWR9DXux-0G/view?usp=share_link
+Go to this google link drive, and download any of the data folders of Spot walking around some environments, and unzip the folder.https://drive.google.com/drive/folders/1zPUWyU7L6PBMpOTdUIQV_KG6yMhS1-dz?usp=share_link
 
 Now, run 
 `python classify_all.py`

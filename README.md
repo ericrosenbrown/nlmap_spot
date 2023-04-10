@@ -16,9 +16,18 @@ CLIP: https://github.com/openai/CLIP
 
 ViLD: https://github.com/tensorflow/tpu/blob/master/models/official/detection/projects/vild/ViLD_demo.ipynb
 
+The codebase is configured so that if you have an offline dataset you wish to process, you can do so without connecting to a Spot at all (explained in Usage section). If you want to connect to the Spot, you'll be asked to supply a username and password. While you can do this manually each time you run the program, you can also just store the username and password into the environmental variables BOSDYN_CLIENT_USERNAME and BOSDYN_CLIENT_PASSWORD redspectively.
+
 ## Usage
-TODO: explain flags (caching)
-TODO: 
+This codebase is configued to offer various functionalities, primarily:
+1. Collecting RGB-D and pose data from the Spot
+2. Processing collected data into a colored pointcloud
+3. Construct a queryable scene representation based on data from (1) (i.e: make an NLMap)
+4. Given a natural language query, visualize the top K results  (either as 2D images or in 3D pointcloud)
+5. Given a natural language query, query NLMap for pose and navigate robot to location + pick object
+6. Given natural language task, use LLM to generate relevant objects
+
+The only functionalities that require connecting to a real robot are for collecting data (1) and having the robot navigatge to objects and pick them up (5). All other functionalities can be executed offline without connecting to a real robot as long as there exists a dataset from (1) already saved.
 
 ## Examples
 Go to this google link drive and download some example images from a Spot walking around a room

@@ -44,7 +44,7 @@ Running this code will save all of the data to a folder depending on the path_di
 
 If you don't have access to a Spot and unable to collect data yourself, you can go to this Google drive link and download some already-collected datasets: https://drive.google.com/drive/folders/1zPUWyU7L6PBMpOTdUIQV_KG6yMhS1-dz
 
-For all the other functionalities that rely on `nlmap.py`, you will need to pass the location and name of the directory that contains all the data through the configuration file. Specifically, you will need to edit data (under dir_names) and data_dir_root (under paths). Look at the **Config** section below for more details.
+For all the other functionalities that rely on `nlmap.py`, you will need to pass the location and name of the directory that contains all the data through the configuration file. Specifically, you will need to edit data (under **[dir_names]**) and `data_dir_root` (under **[paths]**). Look at the **Config** section below for more details.
 
 ## (2) Processing collected data into a colored pointcloud
 We can use the `nlmap.py` script to process a colored pointcloud from the data generated in (1) and visualize the pointcloud. After a pointcloud is made for the first time, we will save the resulting pointcloud into the data directory as `pointcloud.pcd` so that next time we can just load in the pointcloud. 
@@ -52,7 +52,7 @@ We can use the `nlmap.py` script to process a colored pointcloud from the data g
 In the config file (under the [pointcloud] section), set `use_pointcloud = True`. Now when we run `nlmap.py`, if the pointcloud hasn't been made before, it will be generated and saved. Now, you can use the NLMap method `viz_pointcloud()` to visualize the pointcloud (i.e: see the nlmap.py bottom-of-file as example comment)
 
 ## (3) Construct a queryable scene representation based on data from (1) (i.e: make an NLMap)
-This will happen automatically when you construct the NLMap object, so as long as you pass in a valid config file, this will occur. Things to note are that since applying the visual-language models to all the sensor data takes the most amount of time for this entire process, in the config file there are two parameters under [cache]: `images` and `text`. If these are true, then the visual and text embeddings respectively will be saved into folders (location depends on value of `cache_dir` under [paths]), and will be used next time the code is ran. 
+This will happen automatically when you construct the NLMap object, so as long as you pass in a valid config file, this will occur. Things to note are that since applying the visual-language models to all the sensor data takes the most amount of time for this entire process, in the config file there are two parameters under **[cache]**: `images` and `text`. If these are true, then the visual and text embeddings respectively will be saved into folders (location depends on value of `cache_dir` under **[paths]**), and will be used next time the code is ran. 
 
 There are also various visualization options you can have on/off, listed under [viz]. These are described in more detail in the configuration setting.
 
@@ -80,41 +80,41 @@ Here we describe the types and meanings of the configuration file. The config fi
 `hostname` - string representing hostname/IP or Spot. Only matters if use_robot is True.\
 \
 **[paths]** - config values related to the relevant paths\
-data_dir_root - directory that contains data for nlmap (where [dir_names]data is located)\
-cache_dir - path to where caches are stored, only relevant if cache_images/text is used\
-figs_dir - path to where figures are saved (only relevant if [viz]save_whole_boxes or [viz]save_anno_boxes is True)\
-vild_dir - path to where image_path_v2 is stored for vild\
+`data_dir_root` - directory that contains data for nlmap (where [dir_names]data is located)\
+`cache_dir` - path to where caches are stored, only relevant if cache_images/text is used\
+`figs_dir` - path to where figures are saved (only relevant if [viz]save_whole_boxes or [viz]save_anno_boxes is True)\
+`vild_dir` - path to where image_path_v2 is stored for vild\
 \
 **[file_names]** - config values related to name of data files\
-pose - name of pose pickle data (generally is pose_data.pkl)\
-pointcloud - name of pointcloud data (generally is pointcloud.pcd)\
+`pose` - name of pose pickle data (generally is pose_data.pkl)\
+`pointcloud` - name of pointcloud data (generally is pointcloud.pcd)\
 \
 **[cache]** - config values related to caching results\
-images - boolean determining whether image embeddings from CLIP/ViLD are saved\
-text - boolean determining whether text embeddings from CLIP are saved\
+`images` - boolean determining whether image embeddings from CLIP/ViLD are saved\
+`text` - boolean determining whether text embeddings from CLIP are saved\
 \
 **[viz]** - config values related to visualizing\
-boxes - boolean determining whether 2D bounding boxes for ViLD are visualized when creating NLMap object (only relevant if cache does not exist)\
-save_whole_boxes - boolean determining whether 2D bounding boxes are saved into figs_dir when creating NLMap object\
-save_anno_boxes - boolean determining whether distribution over category_name_string is sasved into figs_dir when creating NLMap object\
-mask_color - string (representing color), color of 2d bounding box border\
-alkpha - float, alpha of mask_color\
-overall_fig_size - string (X,Y) representing size of the figures\
+`boxes` - boolean determining whether 2D bounding boxes for ViLD are visualized when creating NLMap object (only relevant if cache does not exist)\
+`save_whole_boxes` - boolean determining whether 2D bounding boxes are saved into figs_dir when creating NLMap object\
+`save_anno_boxes` - boolean determining whether distribution over category_name_string is sasved into figs_dir when creating NLMap object\
+`mask_color` - string (representing color), color of 2d bounding box border\
+`alkpha` - float, alpha of mask_color\
+`overall_fig_size` - string (X,Y) representing size of the figures\
 \
 **[fusion]** - config valus related to multi-view fusion\
-top_k - number of top images used for multi-view fusion based on NLMap score\
+`top_k` - number of top images used for multi-view fusion based on NLMap score\
 \
 **[pointcloud]** - config values related to pointcloud generation\
-use_point - boolean. if true and pointcloud doesn't exist, generate one, otherwise use existing one. If false, don't generate point cloud (more limited capaibility)\
+`use_point` - boolean. if true and pointcloud doesn't exist, generate one, otherwise use existing one. If false, don't generate point cloud (more limited capaibility)\
 \
 **[pose]** - config values related to pose data\
-use_pose - boolean determining whether pose data should be loaded or not\
+`use_pose` - boolean determining whether pose data should be loaded or not\
 \
 **[vild]** - config values related to ViLD\
-max_boxes_to_draw - integer representing how many bounding boxes we consider from ViLD\
-nms_threshold - float determining Non-maximum Suppression (NMS) threshold\
-min_rpn_score - float determing region proposal network score minimum\
-min_box_area - int determining min area of acceptable bounding boxes\
+`max_boxes_to_draw` - integer representing how many bounding boxes we consider from ViLD\
+`nms_threshold` - float determining Non-maximum Suppression (NMS) threshold\
+`min_rpn_score` - float determing region proposal network score minimum\
+`min_box_area` - int determining min area of acceptable bounding boxes\
 \
 **[clip]**\
-model - string of the name of CLIP model\
+`model` - string of the name of CLIP model\

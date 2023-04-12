@@ -44,6 +44,8 @@ Running this code will save all of the data to a folder depending on the path_di
 
 If you don't have access to a Spot and unable to collect data yourself, you can go to this Google drive link and download some already-collected datasets: https://drive.google.com/drive/folders/1zPUWyU7L6PBMpOTdUIQV_KG6yMhS1-dz
 
+For all the other functionalities that rely on `nlmap.py`, you will need to pass the location and name of the directory that contains all the data through the configuration file. Specifically, you will need to edit data (under dir_names) and data_dir_root (under paths). Look at the `Config` section below for more details.
+
 ## (2) Processing collected data into a colored pointcloud
 We can use the `nlmap.py` script to process a colored pointcloud from the data generated in (1) and visualize the pointcloud. After a pointcloud is made for the first time, we will save the resulting pointcloud into the data directory as `pointcloud.pcd` so that next time we can just load in the pointcloud. 
 

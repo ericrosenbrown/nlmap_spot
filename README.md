@@ -38,13 +38,13 @@ If no config_path is provided, a default config file will be used (located in `.
 `nlmap.py` contains an NLMap class, and calling this script simply makes an NLMap object based on the config file. Then, there are various methods that can be called from the instantiated object, which we describe in more detail. 
 
 ## (1) Collecting RGB-D and pose data from the Spot
-Before anything, we need to collect sensor data of the scene using the Spot. Go into the spot_utils folder, this contains all the scripts that are specific to Spot. There is a README that describes some of the various helper scripts. Read the section `Collect depth + color images and robot poses`, this will provide information on how to collect data on the Spot. 
+Before anything, we need to collect sensor data of the scene using the Spot. Go into the spot_utils folder, this contains all the scripts that are specific to Spot. There is a README that describes some of the various helper scripts. Read the section **Collect depth + color images and robot poses**, this will provide information on how to collect data on the Spot. 
 
 Running this code will save all of the data to a folder depending on the path_dir and dir_name provided. Every ith time sensor data is collected, the RGB image will be stored as color_i.jpg, the depth data will be stored as a pickle file as depth_i, and a visualized combination of the depth data on the RGB image will be stored as combined_i.jpg. In addition, there will be a pickle file called pose_data.pkl, this file contains a dictionary  whose keys are i, and whose values are a dictionary with keys 'position', 'quaternion(wxyz)', 'rotation_matrix', 'rpy'. Currently, these are 3D position and rotation representations of where the hand_camera was in space when the image i was collected.
 
 If you don't have access to a Spot and unable to collect data yourself, you can go to this Google drive link and download some already-collected datasets: https://drive.google.com/drive/folders/1zPUWyU7L6PBMpOTdUIQV_KG6yMhS1-dz
 
-For all the other functionalities that rely on `nlmap.py`, you will need to pass the location and name of the directory that contains all the data through the configuration file. Specifically, you will need to edit data (under dir_names) and data_dir_root (under paths). Look at the `Config` section below for more details.
+For all the other functionalities that rely on `nlmap.py`, you will need to pass the location and name of the directory that contains all the data through the configuration file. Specifically, you will need to edit data (under dir_names) and data_dir_root (under paths). Look at the **Config** section below for more details.
 
 ## (2) Processing collected data into a colored pointcloud
 We can use the `nlmap.py` script to process a colored pointcloud from the data generated in (1) and visualize the pointcloud. After a pointcloud is made for the first time, we will save the resulting pointcloud into the data directory as `pointcloud.pcd` so that next time we can just load in the pointcloud. 
@@ -69,15 +69,15 @@ Note: This part is not directly connected to the NLMap code yet, but can be easi
 Here we describe the types and meanings of the configuration file. The config file has different sections (represented in **bold**), and each section contains a list of configurations and their associated values (listed below the bolded section). You can find an example of a config in example.ini: https://github.com/ericrosenbrown/nlmap_spot/blob/dev/configs/example.ini
 
 **[dir_names]** - config values related to names of directories\
-data - the name of the directory that contains data (should be generated from step (1))\
+`data` - the name of the directory that contains data (should be generated from step (1))\
 \
 **[text]** - config values related to text input\
-category_name_string - list of open-query words we will use in NLMap. Currently values are separated by ;. If you change this config value and have text=True for caching, delete your text cache so that it can be remade\
-prompt_engineering - boolean determining whether prompt-engineering should be used or not for text embeddings of category_name_string\
+`category_name_string` - list of open-query words we will use in NLMap. Currently values are separated by ;. If you change this config value and have text=True for caching, delete your text cache so that it can be remade\
+`prompt_engineering` - boolean determining whether prompt-engineering should be used or not for text embeddings of category_name_string\
 \
 **[robot]** - config values related to robot.\
-use_robot - boolean determining whether robot is being used or not. If you are not connected to a Spot or just want to process data offline, set this to False. Otherwise True\
-hostname - string representing hostname/IP or Spot. Only matters if use_robot is True.\
+`use_robot` - boolean determining whether robot is being used or not. If you are not connected to a Spot or just want to process data offline, set this to False. Otherwise True\
+`hostname` - string representing hostname/IP or Spot. Only matters if use_robot is True.\
 \
 **[paths]** - config values related to the relevant paths\
 data_dir_root - directory that contains data for nlmap (where [dir_names]data is located)\

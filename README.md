@@ -64,55 +64,55 @@ Once we have a NLMap object, you can do this by running the method `go_to_and_pi
 Note: This part is not directly connected to the NLMap code yet, but can be easily hooked in. You can find the code in the file `saycan.py`. Given a task, it uses a prompt-engineering approach to use a LLM from OpenAI to propopse relevant objects to use to solve the task. These results can be plugged directly into `category_name_string` of a config file.
 
 # Config
-The actual meanings of each configuration parameter can be found in the comments associated with example.ini: https://github.com/ericrosenbrown/nlmap_spot/blob/dev/configs/example.ini
+Here we describe the types and meanings of the configuration file. You can find an example of a config in example.ini: https://github.com/ericrosenbrown/nlmap_spot/blob/dev/configs/example.ini
 
-[dir_names] - config values related to names of directories\
+**[dir_names]** - config values related to names of directories\
 data - the name of the directory that contains data (should be generated from step (1))\
 \
-[text] - config values related to text input
-category_name_string - list of open-query words we will use in NLMap. Currently values are separated by ;. If you change this config value and have text=True for caching, delete your text cache so that it can be remade
-prompt_engineering - boolean determining whether prompt-engineering should be used or not for text embeddings of category_name_string
-
-[robot] - config values related to robot.
-use_robot - boolean determining whether robot is being used or not. If you are not connected to a Spot or just want to process data offline, set this to False. Otherwise True
-hostname - string representing hostname/IP or Spot. Only matters if use_robot is True.
-
-[paths] - config values related to the relevant paths
-data_dir_root - directory that contains data for nlmap (where [dir_names]data is located)
-cache_dir - path to where caches are stored, only relevant if cache_images/text is used
-figs_dir - path to where figures are saved (only relevant if [viz]save_whole_boxes or [viz]save_anno_boxes is True)
-vild_dir - path to where image_path_v2 is stored for vild
-
-[file_names] - config values related to name of data files
-pose - name of pose pickle data (generally is pose_data.pkl)
-pointcloud - name of pointcloud data (generally is pointcloud.pcd)
-
-[cache] - config values related to caching resul;ts
-images - boolean determining whether image embeddings from CLIP/ViLD are saved
-text - boolean determining whether text embeddings from CLIP are saved
-
-[viz] - config values related to visualizing
-boxes - boolean determining whether 2D bounding boxes for ViLD are visualized when creating NLMap object (only relevant if cache does not exist)
-save_whole_boxes - boolean determining whether 2D bounding boxes are saved into figs_dir when creating NLMap object
-save_anno_boxes - boolean determining whether distribution over category_name_string is sasved into figs_dir when creating NLMap object
-mask_color - string (representing color), color of 2d bounding box border
-alkpha - float, alpha of mask_color
-overall_fig_size - string (X,Y) representing size of the figures
-
-[fusion] - config valus related to multi-view fusion
-top_k - number of top images used for multi-view fusion based on NLMap score
-
-[pointcloud] - config values related to pointcloud generation
-use_point - boolean. if true and pointcloud doesn't exist, generate one, otherwise use existing one. If false, don't generate point cloud (more limited capaibility)
-
-[pose] - config values related to pose data
-use_pose - boolean determining whether pose data should be loaded or not
-
-[vild] - config values related to ViLD
-max_boxes_to_draw - integer representing how many bounding boxes we consider from ViLD
-nms_threshold - float determining Non-maximum Suppression (NMS) threshold
-min_rpn_score - float determing region proposal network score minimum
-min_box_area - int determining min area of acceptable bounding boxes
-
-[clip]
-model - string of the name of CLIP model
+**[text]** - config values related to text input\
+category_name_string - list of open-query words we will use in NLMap. Currently values are separated by ;. If you change this config value and have text=True for caching, delete your text cache so that it can be remade\
+prompt_engineering - boolean determining whether prompt-engineering should be used or not for text embeddings of category_name_string\
+\
+**[robot]** - config values related to robot.\
+use_robot - boolean determining whether robot is being used or not. If you are not connected to a Spot or just want to process data offline, set this to False. Otherwise True\
+hostname - string representing hostname/IP or Spot. Only matters if use_robot is True.\
+\
+[paths] - config values related to the relevant paths\
+data_dir_root - directory that contains data for nlmap (where [dir_names]data is located)\
+cache_dir - path to where caches are stored, only relevant if cache_images/text is used\
+figs_dir - path to where figures are saved (only relevant if [viz]save_whole_boxes or [viz]save_anno_boxes is True)\
+vild_dir - path to where image_path_v2 is stored for vild\
+\
+[file_names] - config values related to name of data files\
+pose - name of pose pickle data (generally is pose_data.pkl)\
+pointcloud - name of pointcloud data (generally is pointcloud.pcd)\
+\
+[cache] - config values related to caching results\
+images - boolean determining whether image embeddings from CLIP/ViLD are saved\
+text - boolean determining whether text embeddings from CLIP are saved\
+\
+[viz] - config values related to visualizing\
+boxes - boolean determining whether 2D bounding boxes for ViLD are visualized when creating NLMap object (only relevant if cache does not exist)\
+save_whole_boxes - boolean determining whether 2D bounding boxes are saved into figs_dir when creating NLMap object\
+save_anno_boxes - boolean determining whether distribution over category_name_string is sasved into figs_dir when creating NLMap object\
+mask_color - string (representing color), color of 2d bounding box border\
+alkpha - float, alpha of mask_color\
+overall_fig_size - string (X,Y) representing size of the figures\
+\
+[fusion] - config valus related to multi-view fusion\
+top_k - number of top images used for multi-view fusion based on NLMap score\
+\
+[pointcloud] - config values related to pointcloud generation\
+use_point - boolean. if true and pointcloud doesn't exist, generate one, otherwise use existing one. If false, don't generate point cloud (more limited capaibility)\
+\
+[pose] - config values related to pose data\
+use_pose - boolean determining whether pose data should be loaded or not\
+\
+[vild] - config values related to ViLD\
+max_boxes_to_draw - integer representing how many bounding boxes we consider from ViLD\
+nms_threshold - float determining Non-maximum Suppression (NMS) threshold\
+min_rpn_score - float determing region proposal network score minimum\
+min_box_area - int determining min area of acceptable bounding boxes\
+\
+[clip]\
+model - string of the name of CLIP model\

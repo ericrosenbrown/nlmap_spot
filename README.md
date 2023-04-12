@@ -66,9 +66,9 @@ Note: This part is not directly connected to the NLMap code yet, but can be easi
 # Config
 The actual meanings of each configuration parameter can be found in the comments associated with example.ini: https://github.com/ericrosenbrown/nlmap_spot/blob/dev/configs/example.ini
 
-[dir_names] - config values related to names of directories
-data - the name of the directory that contains data (should be generated from step (1))
-
+[dir_names] - config values related to names of directories\
+data - the name of the directory that contains data (should be generated from step (1))\
+\
 [text] - config values related to text input
 category_name_string - list of open-query words we will use in NLMap. Currently values are separated by ;. If you change this config value and have text=True for caching, delete your text cache so that it can be remade
 prompt_engineering - boolean determining whether prompt-engineering should be used or not for text embeddings of category_name_string

@@ -27,7 +27,7 @@ This codebase is configued to offer various functionalities, primarily:
 5. Given a natural language query, query NLMap for pose and navigate robot to location + pick object
 6. Given natural language task, use LLM to generate relevant objects
 
-The only functionalities that require connecting to a real robot are for collecting data (1) and having the robot navigatge to objects and pick them up (5). All other functionalities can be executed offline without connecting to a real robot as long as there exists a dataset from (1) already saved. We will now walkthrough each of these functionalities.
+The only functionalities that require connecting to a real robot are for collecting data (1) and having the robot navigatge to objects and pick them up (5). All other functionalities can be executed offline without connecting to a real robot as long as there exists a dataset from (1) already saved. **If you want to use this code base without connecting to a robot and just process data offline (i.e: you don't need to do (1) or (5), then set use_robot=False in config file (more information below). No robot information will be needed or used).** We will now walkthrough each of these functionalities.
 
 Besides Collecting RGB-D and pose data from the Spot (1), all of the other functionalities are done through the `nlmap.py` script. `nlmap.py` takes in a single argument, a path to a configuration file (more details on the configuration file are provided below):
 

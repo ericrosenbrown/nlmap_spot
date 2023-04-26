@@ -39,10 +39,7 @@ def processed_name(name, rm_dot=False):
   return res
 
 
-def build_text_embedding(categories,prompt_engineering=True,this_is=True):
-  clip.available_models()
-  model, preprocess = clip.load("ViT-B/32")
-
+def build_text_embedding(categories,model,preprocess,prompt_engineering=True,this_is=True):
   if prompt_engineering:
     templates = [
       'There is {article} {} in the scene.',
@@ -626,7 +623,7 @@ def configire_matplotlib_settings():
   plt.rc('legend', fontsize=MEDIUM_SIZE)    # legend fontsize
   plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
-def extract_roi_vild(image_path,session,overall_fig_size,params):
+def extract_roi_vild(image_path,session,params):
   #################################################################
   # Unpack parameters
   max_boxes_to_draw, nms_threshold, min_rpn_score_thresh, min_box_area = params

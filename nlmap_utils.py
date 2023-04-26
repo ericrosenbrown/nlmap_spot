@@ -9,7 +9,7 @@ import math
 from queue import PriorityQueue
 import open3d as o3d
 
-def get_best_clip_vild_dirs(img_names,img_dir_path,use_softmax=False,cache_images=True,cache_text=True,cache_path="./cache/",img_dir_name=None,category_names=None,headless=False):
+def get_best_clip_vild_dirs(model,preprocess,img_names,img_dir_path,use_softmax=False,cache_images=True,cache_text=True,cache_path="./cache/",img_dir_name=None,category_names=None,headless=False):
 	#################################################################
 	#Lots of hyperparameters, make more general TODO
 	overall_fig_size = (18, 24)
@@ -45,7 +45,7 @@ def get_best_clip_vild_dirs(img_names,img_dir_path,use_softmax=False,cache_image
 	if cache_text and cache_text_exists:
 			text_features = pickle.load(open(cache_path+img_dir_name+"_text","rb"))
 	else:
-			text_features = build_text_embedding(categories)
+			text_features = build_text_embedding(categories,model,preprocess)
 			pickle.dump(text_features,open(cache_path+img_dir_name+"_text","wb"))
 
 	#################################################################
@@ -78,7 +78,7 @@ def get_best_clip_vild_dirs(img_names,img_dir_path,use_softmax=False,cache_image
 		if cache_images and cache_img_exists:
 			image,image_height,image_width,valid_indices,detection_roi_scores,detection_boxes,detection_masks,detection_visual_feat,rescaled_detection_boxes = img2vectorvild_dir[img_name]	
 		else:
-			image,image_height,image_width,valid_indices,detection_roi_scores,detection_boxes,detection_masks,detection_visual_feat,rescaled_detection_boxes  = extract_roi_vild(image_path,session,overall_fig_size,params)
+			image,image_height,image_width,valid_indices,detection_roi_scores,detection_boxes,detection_masks,detection_visual_feat,rescaled_detection_boxes  = extract_roi_vild(image_path,session,params)
 		if cache_images and not cache_img_exists:
 			img2vectorvild_dir[img_name] = [image,image_height,image_width,valid_indices,detection_roi_scores,detection_boxes,detection_masks,detection_visual_feat,rescaled_detection_boxes]
 		
